@@ -1,1 +1,1 @@
-6372_proj2
+The purpose of this repository is to track our second project.
