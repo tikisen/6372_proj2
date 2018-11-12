@@ -1,5 +1,0 @@
-File descriptions
-
-train.csv - the training set
-test.csv - the test set. You must predict the loss value for the ids in this file.
-sample_submission.csv - a sample submission file in the correct format
