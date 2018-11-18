@@ -1,54 +1,52 @@
-# DEPENDENCIES
+---
+title: "Stats 2 Project 2 - Question 1"
+author: "Bruce Granger"
+date: "11/28/2018"
+output:
+    html_document:
+        keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Required Libraries
+- TIDYVERSE
+```{r Load_Libraries, include=FALSE}
 library(tidyverse)
+```
 
-# INGEST DATA ####
-# BRUCE'S ORG
-#path.file <- "/Users/bgranger/Documents/SMU/6372_Applied Statistics/MSDS6372/Applied_Stats_Project_2/Proj2_Doc/6372_proj2/Data/breast-cancer-wisconsin-data.csv"
+## Load Data
 
-path.file <- "https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/breast-cancer-wisconsin-data.csv"
+- We have some Breast Cancer Data from the Wisconsin Diagnostic Breast Cancer (WDBC) dataset and will first load it in.
+- Add an attribute called CancerState, which is similiar to the Class attribute, the difference is that CancerState uses words to describe the condition, meaning when Class == 2, then "Benign" and when Class == 4, then "Malignanat"
 
-#bruce's original
-#entire.dataset <- read.delim(path.file, sep = ",", header = TRUE, dec = ".")
-
-#corrected to read from the web
-wdbc_data <- read.csv(path.file, sep = ",",  
-                           row.names = NULL, 
-                           header = TRUE)
-
-rm(list = c("path.file"))
-
+```{r input_data}
+wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/breast-cancer-wisconsin-data.csv", 
+                      sep = ",", 
+                      row.names = NULL, 
+                      header = TRUE)
 
 entire.dataset <- wdbc_data %>% mutate(CancerState = case_when(Class == 2 ~ "Benign",
                                                                     Class == 4 ~ "Malignanat"))
+entire.dataset$CancerState <- as.factor(entire.dataset$CancerState)
+```
 
-# CREATE TRAINING AND TEST SET ####
-set.seed(12345) #to get repeatable data
-
-data.train <- sample_frac(entire.dataset, 0.7, replace = FALSE)
-
-train.index <- as.numeric(rownames(data.train))
-data.test <- entire.dataset[-train.index,]
-
-rm(train.index)
-
-
-# SUMMARY STATISTICS ####
-entire.dataset %>% select(c(2:9)) %>% summary() 
-
-# PLOTTING ####
-filepath = "/Users/bgranger/Documents/SMU/6372_Applied Statistics/MSDS6372/Applied_Stats_Project_2/Proj2_Doc/6372_proj2/R_Output"
+## Summary Statistics/Histograms
+```{r SummaryStats}
+entire.dataset %>% select(c(2:12)) %>% summary() 
 
 # TOTAL COUNT BY CANCER TYPE ####
 ggplot(data=entire.dataset, aes(x=CancerState, colour = CancerState)) +
   geom_bar() +
   geom_text(stat='Count', aes(label=..count..), vjust = 10) +
   theme(legend.position = "none") +
-  ggtitle("Total Count by Cancer Type") +
-  scale_color_manual(values = c("blue", "red"))
-#ggsave("CountOFCancerTpye.png", plot = last_plot(), path = filepath, width = 10, height = 15, units = "cm")
+  scale_color_manual(values = c("blue", "red")) +
+  ggtitle("Total Count by Cancer Type: Blue = Benign; Red = Malignanat") 
+  
 
 # PERCENT OF TOTAL BY CANCER TYPE ####
-
 entire.dataset.percent <- entire.dataset %>% 
   count(CancerState) %>% 
   mutate(perc = n / nrow(entire.dataset))
@@ -57,23 +55,31 @@ ggplot(data=entire.dataset.percent, aes(x = CancerState, y = perc, colour = Canc
   geom_bar(stat = "identity") +
   geom_text(stat = "identity", aes(label=round(perc*100,2)), vjust = 10) +
   theme(legend.position = "none") +
-  ggtitle("Percent of Total by Cancer Type")
-#ggsave("PercentOFCancerTpye.png", plot = last_plot(), path = filepath, width = 10, height = 15, units = "cm")
+  scale_color_manual(values = c("blue", "red")) +
+  ggtitle("Percent of Total by Cancer Type: Blue = Benign; Red = Malignanat")
+  
+```
 
-rm(entire.dataset.percent)
+## Pairs Plots
+- Version 1:
+- The objective of the "Pairs Plot" is to create plots based upon paring of variables
+- Additionaly, each observation is color coded to simutaleniously see if the observation is "Benign" or "Malignanat" cancer.  
+  - Color Coding:
+    * Blue = Benign 
+    * Red = Malignanat
 
-# PAIRS ####
+```{r pairsplot_ver1}
 ed.small <- entire.dataset %>% select(-c(1,12))
 cols <- character(nrow(ed.small))
 cols[] <- "black"
 cols[ed.small$Class == 2] <- "blue"
 cols[ed.small$Class == 4] <- "red"
-pairs(ed.small, col=cols, main = "Pairs Plot of Wisconsin Diagnostic Breast Cancer")
-rm(cols)
-
-
+pairs(ed.small, col=cols, main = "WDBC Pairs Plot: Blue = Benign; Red = Malignanat")
+```
+- Version 2:
+- Similar to the first Pairs Plot, however version 2 introduces jitter to the observations and as a result it is easy to see the density of the observations.
+```{r pairsplot_ver2}
 # CONVERT TO NUMERIC
-ed.small.bu <- ed.small
 ed.small$Clump_Thickness <- as.integer(ed.small$Clump_Thickness)
 ed.small$Uniformity_Cell_Size <- as.integer(ed.small$Uniformity_Cell_Size)
 ed.small$Uniformity_Cell_Shape <- as.integer(ed.small$Uniformity_Cell_Shape)
@@ -85,6 +91,13 @@ ed.small$Normal_Nucleoli <- as.integer(ed.small$Normal_Nucleoli)
 ed.small$Mitoses <- as.integer(ed.small$Mitoses)
 ed.small$Class <- as.integer(ed.small$Class)
 
+# REDUCE LENGTH OF ATTRIBUTES 
+ed.small <- ed.small %>% select(Thick = Clump_Thickness, U_Size = Uniformity_Cell_Size,
+                                Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
+                                Epi_Size = Single_Epithelial_Cell_Size, Bare = Bare_Nuclei,
+                                Bland = Bland_Chromatin, Nucleoli = Normal_Nucleoli, 
+                                Mitoses = Mitoses, Class = Class)
+
 # the alpha argument in rgb() lets you set the transparency
 cols2 = c(rgb(red=0, green=0, blue=255, alpha=50, maxColorValue=255), 
           rgb(red=255, green=0, blue=0, alpha=50, maxColorValue=255))
@@ -95,13 +108,7 @@ set.seed(6141)  # this makes the example exactly reproducible
 jbreast = apply(ed.small[,1:9], 2, FUN=function(x){ jitter(x, amount=.5) })
 jbreast = cbind(jbreast, class=ed.small[,10])  # the class variable is not jittered
 
-windows()  # the 1st 5 variables, using pch=16
-pairs(jbreast[,1:5], col=cols2, pch=16)
-
-windows()  # the 2nd 5 variables
-pairs(jbreast[,6:10], col=cols2, pch=16, main = "Pairs Plot of Wisconsin Diagnostic Breast Cancer")
-
-windows()  # to match up the 1st & 2nd sets requires more coding
+#windows()  # to match up the 1st & 2nd sets requires more coding
 layout(matrix(1:25, nrow=5, byrow=T))
 par(mar=c(.5,.5,.5,.5), oma=c(2,2,2,2))
 
@@ -126,9 +133,6 @@ for(i in 1:5){
   
 }
 
+```
 
-
-
-
-
-
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
