@@ -2,13 +2,18 @@
 library(tidyverse)
 
 # INGEST DATA ####
+# BRUCE'S ORG
+#path.file <- "/Users/bgranger/Documents/SMU/6372_Applied Statistics/MSDS6372/Applied_Stats_Project_2/Proj2_Doc/6372_proj2/Data/breast-cancer-wisconsin-data.csv"
+
 path.file <- "https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/breast-cancer-wisconsin-data.csv"
 
 #bruce's original
 #entire.dataset <- read.delim(path.file, sep = ",", header = TRUE, dec = ".")
 
 #corrected to read from the web
-entire.dataset <- read.csv(path.file, sep = ",",  row.names = NULL, stringsAsFactors = FALSE, header = TRUE)
+entire.dataset <- read.csv(path.file, sep = ",",  
+                           row.names = NULL, 
+                           header = TRUE)
 
 rm(list = c("path.file"))
 
@@ -64,7 +69,20 @@ cols[ed.small$Class == 4] <- "red"
 pairs(ed.small, col=cols, main = "Pairs Plot of Wisconsin Diagnostic Breast Cancer")
 rm(cols)
 
+
+# CONVERT TO NUMERIC
+ed.small.bu <- ed.small
+ed.small$Clump_Thickness <- as.integer(ed.small$Clump_Thickness)
+ed.small$Uniformity_Cell_Size <- as.integer(ed.small$Uniformity_Cell_Size)
+ed.small$Uniformity_Cell_Shape <- as.integer(ed.small$Uniformity_Cell_Shape)
+ed.small$Marginal_Adhesion <- as.integer(ed.small$Marginal_Adhesion)
+ed.small$Single_Epithelial_Cell_Size <- as.integer(ed.small$Single_Epithelial_Cell_Size)
 ed.small$Bare_Nuclei <- as.integer(ed.small$Bare_Nuclei)
+ed.small$Bland_Chromatin <- as.integer(ed.small$Bland_Chromatin)
+ed.small$Normal_Nucleoli <- as.integer(ed.small$Normal_Nucleoli)
+ed.small$Mitoses <- as.integer(ed.small$Mitoses)
+ed.small$Class <- as.integer(ed.small$Class)
+
 # the alpha argument in rgb() lets you set the transparency
 cols2 = c(rgb(red=255, green=0, blue=0, alpha=50, maxColorValue=255), rgb(red=0, green=0, blue=255, alpha=50, maxColorValue=255))
 cols2 = ifelse(ed.small$Class==2, cols2[1], cols2[2])
