@@ -2,9 +2,13 @@
 library(tidyverse)
 
 # INGEST DATA ####
-path.file <- "../data/breast-cancer-wisconsin-data.csv"
+path.file <- "https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/breast-cancer-wisconsin-data.csv"
 
-entire.dataset <- read.delim(path.file, sep = ",", header = TRUE, dec = ".")
+#bruce's original
+#entire.dataset <- read.delim(path.file, sep = ",", header = TRUE, dec = ".")
+
+#corrected to read from the web
+entire.dataset <- read.csv(path.file, sep = ",",  row.names = NULL, stringsAsFactors = FALSE, header = TRUE)
 
 rm(list = c("path.file"))
 
