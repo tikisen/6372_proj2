@@ -1,7 +1,7 @@
 ---
-title: "Stats 2 Project 2 - Question 1"
-author: "Bruce Granger"
-date: "11/28/2018"
+title: "Stats 2 Project 2"
+author: "Rick Farrow, Bruce Granger, TQ Senkungu"
+date: "12/1/2018"
 output:
     html_document:
         keep_md: true
@@ -32,6 +32,8 @@ entire.dataset <- wdbc_data %>% mutate(CancerState = case_when(Class == 2 ~ "Ben
                                                                     Class == 4 ~ "Malignanat"))
 entire.dataset$CancerState <- as.factor(entire.dataset$CancerState)
 ```
+
+# Bruce's Work Starts Here
 
 ## Summary Statistics/Histograms
 ```{r SummaryStats}
@@ -135,4 +137,25 @@ for(i in 1:5){
 
 ```
 
+# Bruce's Work Ends Here
+
+# Rick's Work Starts Here
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+library(MASS)
+ftable(addmargins(table(wdbc_data$Class,wdbc_data$Mitoses)))
+prop.table(table(wdbc_data$Class,wdbc_data$Mitoses),2)
+```
+
+# Rick's Work Ends Here
+
+#TQ's Work Starts Here
+
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+#TQ's Work Ends Here

@@ -1,7 +1,7 @@
 ---
-title: "Stats 2 Project 2 - Question 1"
-author: "Bruce Granger"
-date: "11/28/2018"
+title: "Stats 2 Project 2"
+author: "Rick Farrow, Bruce Granger, TQ Senkungu"
+date: "12/1/2018"
 output:
     html_document:
         keep_md: true
@@ -27,15 +27,10 @@ wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/mast
 
 entire.dataset <- wdbc_data %>% mutate(CancerState = case_when(Class == 2 ~ "Benign",
                                                                     Class == 4 ~ "Malignanat"))
-```
-
-```
-## Warning: package 'bindrcpp' was built under R version 3.4.4
-```
-
-```r
 entire.dataset$CancerState <- as.factor(entire.dataset$CancerState)
 ```
+
+# Bruce's Work Starts Here
 
 ## Summary Statistics/Histograms
 
@@ -88,7 +83,7 @@ ggplot(data=entire.dataset, aes(x=CancerState, colour = CancerState)) +
   ggtitle("Total Count by Cancer Type: Blue = Benign; Red = Malignanat") 
 ```
 
-![](Question_1_files/figure-html/SummaryStats-1.png)<!-- -->
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/SummaryStats-1.png)<!-- -->
 
 ```r
 # PERCENT OF TOTAL BY CANCER TYPE ####
@@ -104,7 +99,7 @@ ggplot(data=entire.dataset.percent, aes(x = CancerState, y = perc, colour = Canc
   ggtitle("Percent of Total by Cancer Type: Blue = Benign; Red = Malignanat")
 ```
 
-![](Question_1_files/figure-html/SummaryStats-2.png)<!-- -->
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/SummaryStats-2.png)<!-- -->
 
 ## Pairs Plots
 - Version 1:
@@ -124,7 +119,7 @@ cols[ed.small$Class == 4] <- "red"
 pairs(ed.small, col=cols, main = "WDBC Pairs Plot: Blue = Benign; Red = Malignanat")
 ```
 
-![](Question_1_files/figure-html/pairsplot_ver1-1.png)<!-- -->
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/pairsplot_ver1-1.png)<!-- -->
 - Version 2:
 - Similar to the first Pairs Plot, however version 2 introduces jitter to the observations and as a result it is easy to see the density of the observations.
 
@@ -184,6 +179,58 @@ for(i in 1:5){
 }
 ```
 
-![](Question_1_files/figure-html/pairsplot_ver2-1.png)<!-- -->
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/pairsplot_ver2-1.png)<!-- -->
+
+# Bruce's Work Ends Here
+
+# Rick's Work Starts Here
+
+## Including Plots
+
+You can also embed plots, for example:
+
+
+```
+## 
+## Attaching package: 'MASS'
+```
+
+```
+## The following object is masked from 'package:dplyr':
+## 
+##     select
+```
+
+```
+##                1   10    2    3    4    5    6    7    8 Mitoses  Sum
+##                                                                      
+##           2    0    0    0    0    0    0    0    0    0       0    2
+## 2         0  890    0   16    4    0    2    0    2    2       0  916
+## 4         0  268   28   54   62   24   10    6   16   14       0  482
+## Class     0    0    0    0    0    0    0    0    0    0       1    1
+## Sum       2 1158   28   70   66   24   12    6   18   16       1 1401
+```
+
+```
+##        
+##                             1         10          2          3          4
+##         1.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000
+##   2     0.00000000 0.76856649 0.00000000 0.22857143 0.06060606 0.00000000
+##   4     0.00000000 0.23143351 1.00000000 0.77142857 0.93939394 1.00000000
+##   Class 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000
+##        
+##                  5          6          7          8    Mitoses
+##         0.00000000 0.00000000 0.00000000 0.00000000 0.00000000
+##   2     0.16666667 0.00000000 0.11111111 0.12500000 0.00000000
+##   4     0.83333333 1.00000000 0.88888889 0.87500000 0.00000000
+##   Class 0.00000000 0.00000000 0.00000000 0.00000000 1.00000000
+```
+
+# Rick's Work Ends Here
+
+#TQ's Work Starts Here
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+#TQ's Work Ends Here
