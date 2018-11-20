@@ -36,3 +36,50 @@ ggplot(data = entire.dataset.tall, aes(x=Value, y=Variable)) +
 #       units = "cm") +
 
 # Categorical Variables
+
+# HISTOGRAM DEVELOPMENT
+# HISTOGRAM BY VARIABLE BY CLASS ####
+ed.small <- entire.dataset %>% select(-c(1,11))
+ed.small$Clump_Thickness <- as.integer(ed.small$Clump_Thickness)
+ed.small$Uniformity_Cell_Size <- as.integer(ed.small$Uniformity_Cell_Size)
+ed.small$Uniformity_Cell_Shape <- as.integer(ed.small$Uniformity_Cell_Shape)
+ed.small$Marginal_Adhesion <- as.integer(ed.small$Marginal_Adhesion)
+ed.small$Single_Epithelial_Cell_Size <- as.integer(ed.small$Single_Epithelial_Cell_Size)
+ed.small$Bare_Nuclei <- as.integer(ed.small$Bare_Nuclei)
+ed.small$Bland_Chromatin <- as.integer(ed.small$Bland_Chromatin)
+ed.small$Normal_Nucleoli <- as.integer(ed.small$Normal_Nucleoli)
+ed.small$Mitoses <- as.integer(ed.small$Mitoses)
+
+# GATHER: FROM WIDE TO TALL ####
+# https://stackoverflow.com/questions/14818529/plot-histograms-over-factor-variables
+ed.small <- entire.dataset %>% select(-c(1,11))
+
+ed.small$Clump_Thickness <- as.integer(ed.small$Clump_Thickness)
+ed.small$Uniformity_Cell_Size <- as.integer(ed.small$Uniformity_Cell_Size)
+ed.small$Uniformity_Cell_Shape <- as.integer(ed.small$Uniformity_Cell_Shape)
+ed.small$Marginal_Adhesion <- as.integer(ed.small$Marginal_Adhesion)
+ed.small$Single_Epithelial_Cell_Size <- as.integer(ed.small$Single_Epithelial_Cell_Size)
+ed.small$Bare_Nuclei <- as.integer(ed.small$Bare_Nuclei)
+ed.small$Bland_Chromatin <- as.integer(ed.small$Bland_Chromatin)
+ed.small$Normal_Nucleoli <- as.integer(ed.small$Normal_Nucleoli)
+ed.small$Mitoses <- as.integer(ed.small$Mitoses)
+
+
+ed.tall <- ed.small %>% 
+  gather(-10, key = "Variable", value = "Value") %>% 
+  filter(!is.na(CancerState))
+
+# ed.tall <- ed.tall %>% 
+#   group_by(CancerState, Variable, Value) %>% 
+#   summarise(Count = n()) %>%
+#   arrange(Variable)
+
+
+# CancerState-Variable-Value
+ggplot(data = ed.tall, aes(x=Value)) +
+  geom_histogram(bins=5) + 
+  facet_wrap(Variable ~ CancerState, ncol = 9)
+
+
+
+

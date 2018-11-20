@@ -27,6 +27,13 @@ wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/mast
 
 entire.dataset <- wdbc_data %>% mutate(CancerState = case_when(Class == 2 ~ "Benign",
                                                                     Class == 4 ~ "Malignanat"))
+```
+
+```
+## Warning: package 'bindrcpp' was built under R version 3.4.4
+```
+
+```r
 entire.dataset$CancerState <- as.factor(entire.dataset$CancerState)
 ```
 
@@ -180,6 +187,36 @@ for(i in 1:5){
 ```
 
 ![](Farrow_Granger_Senkungu_Project2_files/figure-html/pairsplot_ver2-1.png)<!-- -->
+## Histogram
+- The histograms are a look at each attribute broken down by CancerState
+
+```r
+ed.small <- entire.dataset %>% select(-c(1,11))
+
+ed.small$Clump_Thickness <- as.integer(ed.small$Clump_Thickness)
+ed.small$Uniformity_Cell_Size <- as.integer(ed.small$Uniformity_Cell_Size)
+ed.small$Uniformity_Cell_Shape <- as.integer(ed.small$Uniformity_Cell_Shape)
+ed.small$Marginal_Adhesion <- as.integer(ed.small$Marginal_Adhesion)
+ed.small$Single_Epithelial_Cell_Size <- as.integer(ed.small$Single_Epithelial_Cell_Size)
+ed.small$Bare_Nuclei <- as.integer(ed.small$Bare_Nuclei)
+ed.small$Bland_Chromatin <- as.integer(ed.small$Bland_Chromatin)
+ed.small$Normal_Nucleoli <- as.integer(ed.small$Normal_Nucleoli)
+ed.small$Mitoses <- as.integer(ed.small$Mitoses)
+
+ed.tall <- ed.small %>% 
+    select(Clump = Clump_Thickness, Cell_Size = Uniformity_Cell_Size, 
+         Cell_Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
+         Epithelial = Single_Epithelial_Cell_Size, Nuclei = Bare_Nuclei,
+         Chromatin = Bland_Chromatin, Nucleoli = Normal_Nucleoli, everything()) %>%
+  gather(-10, key = "Variable", value = "Value") %>% 
+  filter(!is.na(CancerState))
+
+ggplot(data = ed.tall, aes(x=Value)) +
+  geom_histogram(bins=15) + 
+  facet_wrap(Variable ~ CancerState, ncol = 9)
+```
+
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/histogram-1.png)<!-- -->
 
 # Bruce's Work Ends Here
 
