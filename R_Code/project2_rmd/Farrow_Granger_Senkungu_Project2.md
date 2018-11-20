@@ -218,6 +218,25 @@ ggplot(data = ed.tall, aes(x=Value)) +
 
 ![](Farrow_Granger_Senkungu_Project2_files/figure-html/histogram-1.png)<!-- -->
 
+
+```r
+# BOXPLOT ####
+ed.small$CancerState <- as.factor(ed.small$CancerState)
+
+ed.tall <- ed.small %>% 
+  gather(-10, key = "Variable", value = "Value") %>% 
+  filter(!is.na(CancerState))
+
+ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) + 
+  geom_boxplot() +
+  facet_wrap(~ Variable) +
+  ggtitle("WDBC Boxplot ") + 
+  scale_fill_manual(breaks = c("Benign", "Malignanat"), values = c("blue", "red")) +
+  theme(legend.position="none")
+```
+
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/Boxplot-1.png)<!-- -->
+
 # Bruce's Work Ends Here
 
 # Rick's Work Starts Here

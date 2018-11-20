@@ -81,5 +81,15 @@ ggplot(data = ed.tall, aes(x=Value)) +
   facet_wrap(Variable ~ CancerState, ncol = 9)
 
 
+# BOXPLOT ####
+ed.small$CancerState <- as.factor(ed.small$CancerState)
 
+ed.tall <- ed.small %>% 
+  gather(-10, key = "Variable", value = "Value") %>% 
+  filter(!is.na(CancerState))
 
+ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) + 
+  geom_boxplot() +
+  facet_wrap(~ Variable) +
+  ggtitle("WDBC Boxplot ") + 
+  scale_fill_manual(breaks = c("Benign", "Malignanat"), values = c("blue", "red"))
