@@ -94,7 +94,7 @@ wdbc.data %>% select(Nuclei) %>% summary()
 
 entire.dataset <- wdbc.data %>% 
   mutate(CancerState = case_when(Class == 2 ~ "Benign",
-                                 Class == 4 ~ "Malignanat"))
+                                 Class == 4 ~ "Malignant"))
 
 entire.dataset$CancerState <- as.factor(entire.dataset$CancerState)
 ```
@@ -230,22 +230,43 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
   theme(legend.position="none")
 ```
 
-```{r Logistic Regression}
+```{r LogisticRegression}
 set.seed(12345) #to get repeatable data
 
-data.train <- sample_frac(entire.dataset, 0.7, replace = FALSE)
+wdbc.train <- sample_frac(ed.small, 0.7, replace = FALSE)
 
-train.index <- as.numeric(rownames(data.train))
-data.test <- entire.dataset[-train.index,]
+train.index <- as.numeric(rownames(wdbc.train))
+wdbc.test <- ed.small[-train.index,]
 
 rm(train.index)
 
-glm.fit <- glm(CancerState ~ Clump + Cell_Size + Cell_Shape + Adhesion + Epithelial +
-                 Nuclei + Chromatin + Nucleoli + Mitoses, 
-               data = ed.small, family = binomial)
-summary(glm.fit)
+# MODEL FITTING
+wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = binomial(link = "logit"))
+
+summary(wdbc.glm.fit)
 ```
 
+The following attributes are NOT statistically significant:
+* Cell_Size
+* Epithelial
+  
+The following attributes ARE statistically significant:
+  * Clump
+  * Nuclei
+  * Chromatin
+  * Adhesion
+  * Cell_Shape
+  * Mitoses
+  
+- In this logit model, the response valirable (CancerState) is log odds, a unit increase in Clump increases the odds by 0.6, a unit increase in Nuclei increases the odds by 0.4, and a unit increase in Chromatin increases the odds by 0.5.
+- The null deviance (the deviance just for the mean) is 1271 and the residual deviance (the deviance for the model) is 171.
+- The difference between the null deviance and the residual deviance shows how the model is doing against the null model (a model with only the intercept). The wider the gap between the null deviance and the residual deviance, the better.
+- Analyzing the table we can see the drop in deviance when adding each variable one at a time, with the exception of when adding Nuclei and Chromatin.
+- With the addition of Clump significantly reduces the residual deviance and each additional attribute reduces the residual deviance, but in much smaller increments.
+
+```{r GLM_FIT_ANOVA}
+anova(wdbc.glm.fit, test = "Chisq")
+```
 # Bruce's Work Ends Here
 
 # Rick's Work Starts Here
@@ -355,7 +376,7 @@ table(prd,test.entire.dataset$Class)
 ## Stepwise Regression
 
 ```{r stepwise}
-?lm
+#?lm
 
 full.model <- lm (Class ~., data = entire.dataset)
 ```
