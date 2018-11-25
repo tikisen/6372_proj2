@@ -12,28 +12,93 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ## Load Required Libraries
-- TIDYVERSE
+- Tidyverse 
+- Amelia
+- Corrplot
+
 ```{r Load_Libraries, include=FALSE}
 library(tidyverse)
+library(Amelia)
+library(corrplot)
 ```
 
 ## Load Data
 
-- We have some Breast Cancer Data from the Wisconsin Diagnostic Breast Cancer (WDBC) dataset and will first load it in.
-- Add an attribute called CancerState, which is similiar to the Class attribute, the difference is that CancerState uses words to describe the condition, meaning when Class == 2, then "Benign" and when Class == 4, then "Malignanat"
+- We are using the Breast Cancer Data from the Wisconsin Diagnostic Breast Cancer (WDBC) dataset and will first load it.
 
 ```{r input_data}
 wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/breast-cancer-wisconsin-data.csv", 
                       sep = ",", 
                       row.names = NULL, 
-                      header = TRUE)
+                      header = TRUE,
+                      na.strings = c(""),
+                      stringsAsFactors = FALSE)
 
-entire.dataset <- wdbc_data %>% mutate(CancerState = case_when(Class == 2 ~ "Benign",
-                                                                    Class == 4 ~ "Malignanat"))
-entire.dataset$CancerState <- as.factor(entire.dataset$CancerState)
+wdbc_data <- wdbc_data %>% filter(ID !="Sample_code_number")
 ```
 
 # Bruce's Work Starts Here
+
+## Check for missing values
+```{r CheckForMissingValues}
+sapply(wdbc_data,function(x) sum(is.na(x)))
+```
+
+- The above output identifies there is missing data in each of the attributes, but what is not clear at this point if the missing values are for the same of different IDs.
+
+- The following visualizes where the missing data is occurring:
+
+```{r CheckForMissingValuesViz}
+missmap(wdbc_data, main = "Missing values vs observed")
+```
+
+- The above visualization shows that the missing feature values are missing from the same ID.  Since each of the respective ID's is missing values for all of the fetures it doesn't make since to impute values, therefore each of the records will be removed from the data set. 
+
+```{r CreateNAFreeDataSet}
+wdbc.data <- wdbc_data %>% 
+  filter(!is.na(wdbc_data$Uniformity_Cell_Shape))
+rm(wdbc_data)
+```
+
+- Attributes will be coerced from character to numeric data type. 
+- 32 NA will be introduced into the Bare_Nuclei attribute, the median will replace the NA values.
+- Add an attribute called CancerState, which is similiar to the Class attribute, the difference is that CancerState uses words to describe the condition, meaning when Class == 2, then "Benign" and when Class == 4, then "Malignanat"
+
+```{r AttributeCoercion}
+
+wdbc.data$ID <- as.integer(wdbc.data$ID)
+wdbc.data$Clump_Thickness <- as.integer(wdbc.data$Clump_Thickness)
+wdbc.data$Uniformity_Cell_Size <- as.integer(wdbc.data$Uniformity_Cell_Size)
+wdbc.data$Uniformity_Cell_Shape <- as.integer(wdbc.data$Uniformity_Cell_Shape)
+wdbc.data$Marginal_Adhesion <- as.integer(wdbc.data$Marginal_Adhesion)
+wdbc.data$Single_Epithelial_Cell_Size <- as.integer(wdbc.data$Single_Epithelial_Cell_Size)
+wdbc.data$Bare_Nuclei <- as.integer(wdbc.data$Bare_Nuclei)
+wdbc.data$Bland_Chromatin <- as.integer(wdbc.data$Bland_Chromatin)
+wdbc.data$Normal_Nucleoli <- as.integer(wdbc.data$Normal_Nucleoli)
+wdbc.data$Mitoses <- as.integer(wdbc.data$Mitoses)
+wdbc.data$Class <- as.integer(wdbc.data$Class)
+
+wdbc.data <- wdbc.data %>%
+  select(ID = ID, Clump = Clump_Thickness, Cell_Size = Uniformity_Cell_Size, 
+         Cell_Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
+         Epithelial = Single_Epithelial_Cell_Size, Nuclei = Bare_Nuclei,
+         Chromatin = Bland_Chromatin, Nucleoli = Normal_Nucleoli, everything())
+
+wdbc.data %>% select(Nuclei) %>% summary()
+
+wdbc.data$Nuclei <- ifelse(is.na(wdbc.data$Nuclei),
+                           median(wdbc.data$Nuclei, na.rm=TRUE), 
+                           wdbc.data$Nuclei)
+
+wdbc.data %>% select(Nuclei) %>% summary()
+
+entire.dataset <- wdbc.data %>% 
+  mutate(CancerState = case_when(Class == 2 ~ "Benign",
+                                 Class == 4 ~ "Malignanat"))
+
+entire.dataset$CancerState <- as.factor(entire.dataset$CancerState)
+```
+
 
 ## Summary Statistics/Histograms
 ```{r SummaryStats}
@@ -59,7 +124,7 @@ ggplot(data=entire.dataset.percent, aes(x = CancerState, y = perc, colour = Canc
   theme(legend.position = "none") +
   scale_color_manual(values = c("blue", "red")) +
   ggtitle("Percent of Total by Cancer Type: Blue = Benign; Red = Malignanat")
-  
+rm(entire.dataset.percent) 
 ```
 
 ## Pairs Plots
@@ -77,28 +142,13 @@ cols[] <- "black"
 cols[ed.small$Class == 2] <- "blue"
 cols[ed.small$Class == 4] <- "red"
 pairs(ed.small, col=cols, main = "WDBC Pairs Plot: Blue = Benign; Red = Malignanat")
+rm(cols)
 ```
+
 - Version 2:
 - Similar to the first Pairs Plot, however version 2 introduces jitter to the observations and as a result it is easy to see the density of the observations.
-```{r pairsplot_ver2}
-# CONVERT TO NUMERIC
-ed.small$Clump_Thickness <- as.integer(ed.small$Clump_Thickness)
-ed.small$Uniformity_Cell_Size <- as.integer(ed.small$Uniformity_Cell_Size)
-ed.small$Uniformity_Cell_Shape <- as.integer(ed.small$Uniformity_Cell_Shape)
-ed.small$Marginal_Adhesion <- as.integer(ed.small$Marginal_Adhesion)
-ed.small$Single_Epithelial_Cell_Size <- as.integer(ed.small$Single_Epithelial_Cell_Size)
-ed.small$Bare_Nuclei <- as.integer(ed.small$Bare_Nuclei)
-ed.small$Bland_Chromatin <- as.integer(ed.small$Bland_Chromatin)
-ed.small$Normal_Nucleoli <- as.integer(ed.small$Normal_Nucleoli)
-ed.small$Mitoses <- as.integer(ed.small$Mitoses)
-ed.small$Class <- as.integer(ed.small$Class)
 
-# REDUCE LENGTH OF ATTRIBUTES 
-ed.small <- ed.small %>% select(Thick = Clump_Thickness, U_Size = Uniformity_Cell_Size,
-                                Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
-                                Epi_Size = Single_Epithelial_Cell_Size, Bare = Bare_Nuclei,
-                                Bland = Bland_Chromatin, Nucleoli = Normal_Nucleoli, 
-                                Mitoses = Mitoses, Class = Class)
+```{r pairsplot_ver2}
 
 # the alpha argument in rgb() lets you set the transparency
 cols2 = c(rgb(red=0, green=0, blue=255, alpha=50, maxColorValue=255), 
@@ -134,28 +184,28 @@ for(i in 1:5){
   }
   
 }
+rm(list = c("jbreast", "cols2", "i", "j"))
 
 ```
+
+## Corrleation Plot
+- Positive correlations are displayed in blue and negative correlations in red color.
+- Color intensity and the size of the circle are proportional to the correlation coefficients.
+
+```{r CorrelationPlot}
+corr <- cor(ed.small)
+corrplot(corr, method ="number", type= "upper")
+corrplot(corr, method ="circle", type= "upper")
+rm(corr)
+```
+
 ## Histogram
 - The histograms are a look at each attribute broken down by CancerState
+
 ```{r histogram}
 ed.small <- entire.dataset %>% select(-c(1,11))
 
-ed.small$Clump_Thickness <- as.integer(ed.small$Clump_Thickness)
-ed.small$Uniformity_Cell_Size <- as.integer(ed.small$Uniformity_Cell_Size)
-ed.small$Uniformity_Cell_Shape <- as.integer(ed.small$Uniformity_Cell_Shape)
-ed.small$Marginal_Adhesion <- as.integer(ed.small$Marginal_Adhesion)
-ed.small$Single_Epithelial_Cell_Size <- as.integer(ed.small$Single_Epithelial_Cell_Size)
-ed.small$Bare_Nuclei <- as.integer(ed.small$Bare_Nuclei)
-ed.small$Bland_Chromatin <- as.integer(ed.small$Bland_Chromatin)
-ed.small$Normal_Nucleoli <- as.integer(ed.small$Normal_Nucleoli)
-ed.small$Mitoses <- as.integer(ed.small$Mitoses)
-
-ed.tall <- ed.small %>% 
-    select(Clump = Clump_Thickness, Cell_Size = Uniformity_Cell_Size, 
-         Cell_Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
-         Epithelial = Single_Epithelial_Cell_Size, Nuclei = Bare_Nuclei,
-         Chromatin = Bland_Chromatin, Nucleoli = Normal_Nucleoli, everything()) %>%
+ed.tall <- ed.small %>%
   gather(-10, key = "Variable", value = "Value") %>% 
   filter(!is.na(CancerState))
 
@@ -164,10 +214,10 @@ ggplot(data = ed.tall, aes(x=Value)) +
   facet_wrap(Variable ~ CancerState, ncol = 9)
 ```
 
-```{r Boxplot}
-# BOXPLOT ####
-ed.small$CancerState <- as.factor(ed.small$CancerState)
+## Boxplots
+- Boxplot of attributes, color by CancerState
 
+```{r Boxplot}
 ed.tall <- ed.small %>% 
   gather(-10, key = "Variable", value = "Value") %>% 
   filter(!is.na(CancerState))
@@ -180,6 +230,22 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
   theme(legend.position="none")
 ```
 
+```{r Logistic Regression}
+set.seed(12345) #to get repeatable data
+
+data.train <- sample_frac(entire.dataset, 0.7, replace = FALSE)
+
+train.index <- as.numeric(rownames(data.train))
+data.test <- entire.dataset[-train.index,]
+
+rm(train.index)
+
+glm.fit <- glm(CancerState ~ Clump + Cell_Size + Cell_Shape + Adhesion + Epithelial +
+                 Nuclei + Chromatin + Nucleoli + Mitoses, 
+               data = ed.small, family = binomial)
+summary(glm.fit)
+```
+
 # Bruce's Work Ends Here
 
 # Rick's Work Starts Here
@@ -189,9 +255,7 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
 You can also embed plots, for example:
 
 ```{r pressure, echo=FALSE}
-library(MASS)
-ftable(addmargins(table(wdbc_data$Class,wdbc_data$Mitoses)))
-prop.table(table(wdbc_data$Class,wdbc_data$Mitoses),2)
+
 ```
 
 # Rick's Work Ends Here

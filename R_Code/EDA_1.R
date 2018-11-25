@@ -11,15 +11,59 @@ path.file <- "https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/b
 #entire.dataset <- read.delim(path.file, sep = ",", header = TRUE, dec = ".")
 
 #corrected to read from the web
-wdbc_data <- read.csv(path.file, sep = ",",  
-                           row.names = NULL, 
-                           header = TRUE)
+wdbc_data <- read.csv(path.file, 
+                      sep = ",",
+                      row.names = NULL, 
+                      header = TRUE,
+                      na.strings = c(""),
+                      stringsAsFactors = FALSE)
+
+
+wdbc_data <- wdbc_data %>% filter(ID !="Sample_code_number")
 
 rm(list = c("path.file"))
 
+# CHECK FOR MISSING VALUES ####
+sapply(wdbc_data,function(x) sum(is.na(x)))
 
-entire.dataset <- wdbc_data %>% mutate(CancerState = case_when(Class == 2 ~ "Benign",
-                                                                    Class == 4 ~ "Malignanat"))
+library(Amelia)
+missmap(wdbc_data, main = "Missing values vs observed")
+
+wdbc.data <- wdbc_data %>% filter(!is.na(wdbc_data$Uniformity_Cell_Shape))
+
+# ATTRIBUTE COERCION ####
+wdbc.data$ID <- as.integer(wdbc.data$ID)
+wdbc.data$Clump_Thickness <- as.integer(wdbc.data$Clump_Thickness)
+wdbc.data$Uniformity_Cell_Size <- as.integer(wdbc.data$Uniformity_Cell_Size)
+wdbc.data$Uniformity_Cell_Shape <- as.integer(wdbc.data$Uniformity_Cell_Shape)
+wdbc.data$Marginal_Adhesion <- as.integer(wdbc.data$Marginal_Adhesion)
+wdbc.data$Single_Epithelial_Cell_Size <- as.integer(wdbc.data$Single_Epithelial_Cell_Size)
+wdbc.data$Bare_Nuclei <- as.integer(wdbc.data$Bare_Nuclei)
+wdbc.data$Bland_Chromatin <- as.integer(wdbc.data$Bland_Chromatin)
+wdbc.data$Normal_Nucleoli <- as.integer(wdbc.data$Normal_Nucleoli)
+wdbc.data$Mitoses <- as.integer(wdbc.data$Mitoses)
+wdbc.data$Class <- as.integer(wdbc.data$Class)
+
+wdbc.data <- wdbc.data %>%
+  select(Clump = Clump_Thickness, Cell_Size = Uniformity_Cell_Size, 
+         Cell_Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
+         Epithelial = Single_Epithelial_Cell_Size, Nuclei = Bare_Nuclei,
+         Chromatin = Bland_Chromatin, Nucleoli = Normal_Nucleoli, everything())
+
+wdbc.data %>% summary()
+
+wdbc.data$Nuclei <- ifelse(is.na(wdbc.data$Nuclei),
+                           median(wdbc.data$Nuclei, na.rm=TRUE), 
+                           wdbc.data$Nuclei)
+
+wdbc.data %>% summary()
+
+# CREATE CancerState ATTRIBUTE####
+
+entire.dataset <- wdbc.data %>% mutate(CancerState = case_when(Class == 2 ~ "Benign",
+                                                               Class == 4 ~ "Malignanat"))
+
+entire.dataset$CancerState <- as.factor(entire.dataset$CancerState)
 
 # CREATE TRAINING AND TEST SET ####
 set.seed(12345) #to get repeatable data

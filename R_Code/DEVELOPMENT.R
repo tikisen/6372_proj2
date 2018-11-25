@@ -92,4 +92,43 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
   geom_boxplot() +
   facet_wrap(~ Variable) +
   ggtitle("WDBC Boxplot ") + 
-  scale_fill_manual(breaks = c("Benign", "Malignanat"), values = c("blue", "red"))
+  scale_fill_manual(breaks = c("Benign", "Malignanat"), values = c("blue", "red")) +
+  theme(legend.position="none")
+
+# CORRPLOT ####
+# CORRELATION PLOT
+library(corrplot)
+
+corr.data <- wdbc_data %>% select(-c(1)) 
+
+corr.data$Clump_Thickness <- as.integer(corr.data$Clump_Thickness)
+corr.data$Uniformity_Cell_Size <- as.integer(corr.data$Uniformity_Cell_Size)
+corr.data$Uniformity_Cell_Shape <- as.integer(corr.data$Uniformity_Cell_Shape)
+corr.data$Marginal_Adhesion <- as.integer(corr.data$Marginal_Adhesion)
+corr.data$Single_Epithelial_Cell_Size <- as.integer(corr.data$Single_Epithelial_Cell_Size)
+corr.data$Bare_Nuclei <- as.integer(corr.data$Bare_Nuclei)
+corr.data$Bland_Chromatin <- as.integer(corr.data$Bland_Chromatin)
+corr.data$Normal_Nucleoli <- as.integer(corr.data$Normal_Nucleoli)
+corr.data$Mitoses <- as.integer(corr.data$Mitoses)
+corr.data$Class <- as.integer(corr.data$Class)
+
+corr.data <- corr.data %>%
+  select(Clump = Clump_Thickness, Cell_Size = Uniformity_Cell_Size, 
+       Cell_Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
+       Epithelial = Single_Epithelial_Cell_Size, Nuclei = Bare_Nuclei,
+       Chromatin = Bland_Chromatin, Nucleoli = Normal_Nucleoli, everything())
+
+corr <- cor(corr.data)
+corrplot(corr, method ="number", type= "upper")
+
+# IMPUTATION ####
+
+
+wdbc.data %>% summary()
+
+wdbc.data$Nuclei <- ifelse(is.na(wdbc.data$Nuclei),
+                           median(wdbc.data$Nuclei, na.rm=TRUE), 
+                           wdbc.data$Nuclei)
+
+wdbc.data %>% summary()
+                            

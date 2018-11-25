@@ -11,33 +11,145 @@ output:
 
 ## Load Required Libraries
 - TIDYVERSE
+- Amelia
+- Corrplot
+
 
 
 ## Load Data
 
-- We have some Breast Cancer Data from the Wisconsin Diagnostic Breast Cancer (WDBC) dataset and will first load it in.
-- Add an attribute called CancerState, which is similiar to the Class attribute, the difference is that CancerState uses words to describe the condition, meaning when Class == 2, then "Benign" and when Class == 4, then "Malignanat"
+- We using the Breast Cancer Data from the Wisconsin Diagnostic Breast Cancer (WDBC) dataset and will first load it.
 
 
 ```r
 wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/breast-cancer-wisconsin-data.csv", 
                       sep = ",", 
                       row.names = NULL, 
-                      header = TRUE)
+                      header = TRUE,
+                      na.strings = c(""),
+                      stringsAsFactors = FALSE)
 
-entire.dataset <- wdbc_data %>% mutate(CancerState = case_when(Class == 2 ~ "Benign",
-                                                                    Class == 4 ~ "Malignanat"))
+wdbc_data <- wdbc_data %>% filter(ID !="Sample_code_number")
 ```
 
 ```
 ## Warning: package 'bindrcpp' was built under R version 3.4.4
 ```
 
+# Bruce's Work Starts Here
+
+## Check for missing values
+
 ```r
+sapply(wdbc_data,function(x) sum(is.na(x)))
+```
+
+```
+##                          ID             Clump_Thickness 
+##                           0                           2 
+##        Uniformity_Cell_Size       Uniformity_Cell_Shape 
+##                           2                           2 
+##           Marginal_Adhesion Single_Epithelial_Cell_Size 
+##                           2                           2 
+##                 Bare_Nuclei             Bland_Chromatin 
+##                           2                           2 
+##             Normal_Nucleoli                     Mitoses 
+##                           2                           2 
+##                       Class 
+##                           2
+```
+
+- The above output identifies there is missing data in each of the attributes, but what is not clear at this point if the missing values are for the same of different IDs.
+
+- The following visualizes where the missing data is occurring:
+
+
+```r
+missmap(wdbc_data, main = "Missing values vs observed")
+```
+
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/CheckForMissingValuesViz-1.png)<!-- -->
+
+- The above visualization shows that the missing feature values are missing from the same ID.  Since each of the respective ID's is missing values for all of the fetures it doesn't make since to impute values, therefore each of the records will be removed from the data set. 
+
+
+```r
+wdbc.data <- wdbc_data %>% 
+  filter(!is.na(wdbc_data$Uniformity_Cell_Shape))
+rm(wdbc_data)
+```
+
+- Attributes will be coerced from character to numeric data type. 
+- 32 NA will be introduced into the Bare_Nuclei attribute, the median will replace the NA values.
+- Add an attribute called CancerState, which is similiar to the Class attribute, the difference is that CancerState uses words to describe the condition, meaning when Class == 2, then "Benign" and when Class == 4, then "Malignanat"
+
+
+```r
+wdbc.data$ID <- as.integer(wdbc.data$ID)
+wdbc.data$Clump_Thickness <- as.integer(wdbc.data$Clump_Thickness)
+wdbc.data$Uniformity_Cell_Size <- as.integer(wdbc.data$Uniformity_Cell_Size)
+wdbc.data$Uniformity_Cell_Shape <- as.integer(wdbc.data$Uniformity_Cell_Shape)
+wdbc.data$Marginal_Adhesion <- as.integer(wdbc.data$Marginal_Adhesion)
+wdbc.data$Single_Epithelial_Cell_Size <- as.integer(wdbc.data$Single_Epithelial_Cell_Size)
+wdbc.data$Bare_Nuclei <- as.integer(wdbc.data$Bare_Nuclei)
+```
+
+```
+## Warning: NAs introduced by coercion
+```
+
+```r
+wdbc.data$Bland_Chromatin <- as.integer(wdbc.data$Bland_Chromatin)
+wdbc.data$Normal_Nucleoli <- as.integer(wdbc.data$Normal_Nucleoli)
+wdbc.data$Mitoses <- as.integer(wdbc.data$Mitoses)
+wdbc.data$Class <- as.integer(wdbc.data$Class)
+
+wdbc.data <- wdbc.data %>%
+  select(ID = ID, Clump = Clump_Thickness, Cell_Size = Uniformity_Cell_Size, 
+         Cell_Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
+         Epithelial = Single_Epithelial_Cell_Size, Nuclei = Bare_Nuclei,
+         Chromatin = Bland_Chromatin, Nucleoli = Normal_Nucleoli, everything())
+
+wdbc.data %>% select(Nuclei) %>% summary()
+```
+
+```
+##      Nuclei      
+##  Min.   : 1.000  
+##  1st Qu.: 1.000  
+##  Median : 1.000  
+##  Mean   : 3.545  
+##  3rd Qu.: 6.000  
+##  Max.   :10.000  
+##  NA's   :32
+```
+
+```r
+wdbc.data$Nuclei <- ifelse(is.na(wdbc.data$Nuclei),
+                           median(wdbc.data$Nuclei, na.rm=TRUE), 
+                           wdbc.data$Nuclei)
+
+wdbc.data %>% select(Nuclei) %>% summary()
+```
+
+```
+##      Nuclei      
+##  Min.   : 1.000  
+##  1st Qu.: 1.000  
+##  Median : 1.000  
+##  Mean   : 3.486  
+##  3rd Qu.: 5.000  
+##  Max.   :10.000
+```
+
+```r
+entire.dataset <- wdbc.data %>% 
+  mutate(CancerState = case_when(Class == 2 ~ "Benign",
+                                 Class == 4 ~ "Malignanat"))
+
 entire.dataset$CancerState <- as.factor(entire.dataset$CancerState)
 ```
 
-# Bruce's Work Starts Here
 
 ## Summary Statistics/Histograms
 
@@ -46,38 +158,27 @@ entire.dataset %>% select(c(2:12)) %>% summary()
 ```
 
 ```
-##  Clump_Thickness Uniformity_Cell_Size Uniformity_Cell_Shape
-##  1      :290     1      :768          1      :706          
-##  5      :260     10     :134          2      :118          
-##  3      :216     3      :104          10     :116          
-##  4      :160     2      : 90          3      :112          
-##  10     :138     4      : 80          4      : 88          
-##  2      :100     5      : 60          5      : 68          
-##  (Other):237     (Other):165          (Other):193          
-##  Marginal_Adhesion Single_Epithelial_Cell_Size  Bare_Nuclei 
-##  1      :814       2      :772                 1      :804  
-##  2      :116       3      :144                 10     :264  
-##  3      :116       4      : 96                 2      : 60  
-##  10     :110       1      : 94                 5      : 60  
-##  4      : 66       6      : 82                 3      : 56  
-##  8      : 50       5      : 78                 8      : 42  
-##  (Other):129       (Other):135                 (Other):115  
-##  Bland_Chromatin Normal_Nucleoli    Mitoses       Class    
-##  2      :332     1      :886     1      :1158        :  2  
-##  3      :330     10     :122     2      :  70   2    :916  
-##  1      :304     3      : 88     3      :  66   4    :482  
-##  7      :146     2      : 72     10     :  28   Class:  1  
-##  4      : 80     8      : 48     4      :  24              
-##  5      : 68     6      : 44     7      :  18              
-##  (Other):141     (Other):141     (Other):  37              
-##      CancerState 
-##  Benign    :916  
-##  Malignanat:482  
-##  NA's      :  3  
-##                  
-##                  
-##                  
-## 
+##      Clump          Cell_Size        Cell_Shape        Adhesion     
+##  Min.   : 1.000   Min.   : 1.000   Min.   : 1.000   Min.   : 1.000  
+##  1st Qu.: 2.000   1st Qu.: 1.000   1st Qu.: 1.000   1st Qu.: 1.000  
+##  Median : 4.000   Median : 1.000   Median : 1.000   Median : 1.000  
+##  Mean   : 4.418   Mean   : 3.134   Mean   : 3.207   Mean   : 2.807  
+##  3rd Qu.: 6.000   3rd Qu.: 5.000   3rd Qu.: 5.000   3rd Qu.: 4.000  
+##  Max.   :10.000   Max.   :10.000   Max.   :10.000   Max.   :10.000  
+##    Epithelial         Nuclei         Chromatin         Nucleoli     
+##  Min.   : 1.000   Min.   : 1.000   Min.   : 1.000   Min.   : 1.000  
+##  1st Qu.: 2.000   1st Qu.: 1.000   1st Qu.: 2.000   1st Qu.: 1.000  
+##  Median : 2.000   Median : 1.000   Median : 3.000   Median : 1.000  
+##  Mean   : 3.216   Mean   : 3.486   Mean   : 3.438   Mean   : 2.867  
+##  3rd Qu.: 4.000   3rd Qu.: 5.000   3rd Qu.: 5.000   3rd Qu.: 4.000  
+##  Max.   :10.000   Max.   :10.000   Max.   :10.000   Max.   :10.000  
+##     Mitoses           Class          CancerState 
+##  Min.   : 1.000   Min.   :2.00   Benign    :916  
+##  1st Qu.: 1.000   1st Qu.:2.00   Malignanat:482  
+##  Median : 1.000   Median :2.00                   
+##  Mean   : 1.589   Mean   :2.69                   
+##  3rd Qu.: 1.000   3rd Qu.:4.00                   
+##  Max.   :10.000   Max.   :4.00
 ```
 
 ```r
@@ -108,6 +209,10 @@ ggplot(data=entire.dataset.percent, aes(x = CancerState, y = perc, colour = Canc
 
 ![](Farrow_Granger_Senkungu_Project2_files/figure-html/SummaryStats-2.png)<!-- -->
 
+```r
+rm(entire.dataset.percent) 
+```
+
 ## Pairs Plots
 - Version 1:
 - The objective of the "Pairs Plot" is to create plots based upon paring of variables
@@ -127,29 +232,16 @@ pairs(ed.small, col=cols, main = "WDBC Pairs Plot: Blue = Benign; Red = Malignan
 ```
 
 ![](Farrow_Granger_Senkungu_Project2_files/figure-html/pairsplot_ver1-1.png)<!-- -->
+
+```r
+rm(cols)
+```
+
 - Version 2:
 - Similar to the first Pairs Plot, however version 2 introduces jitter to the observations and as a result it is easy to see the density of the observations.
 
+
 ```r
-# CONVERT TO NUMERIC
-ed.small$Clump_Thickness <- as.integer(ed.small$Clump_Thickness)
-ed.small$Uniformity_Cell_Size <- as.integer(ed.small$Uniformity_Cell_Size)
-ed.small$Uniformity_Cell_Shape <- as.integer(ed.small$Uniformity_Cell_Shape)
-ed.small$Marginal_Adhesion <- as.integer(ed.small$Marginal_Adhesion)
-ed.small$Single_Epithelial_Cell_Size <- as.integer(ed.small$Single_Epithelial_Cell_Size)
-ed.small$Bare_Nuclei <- as.integer(ed.small$Bare_Nuclei)
-ed.small$Bland_Chromatin <- as.integer(ed.small$Bland_Chromatin)
-ed.small$Normal_Nucleoli <- as.integer(ed.small$Normal_Nucleoli)
-ed.small$Mitoses <- as.integer(ed.small$Mitoses)
-ed.small$Class <- as.integer(ed.small$Class)
-
-# REDUCE LENGTH OF ATTRIBUTES 
-ed.small <- ed.small %>% select(Thick = Clump_Thickness, U_Size = Uniformity_Cell_Size,
-                                Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
-                                Epi_Size = Single_Epithelial_Cell_Size, Bare = Bare_Nuclei,
-                                Bland = Bland_Chromatin, Nucleoli = Normal_Nucleoli, 
-                                Mitoses = Mitoses, Class = Class)
-
 # the alpha argument in rgb() lets you set the transparency
 cols2 = c(rgb(red=0, green=0, blue=255, alpha=50, maxColorValue=255), 
           rgb(red=255, green=0, blue=0, alpha=50, maxColorValue=255))
@@ -187,27 +279,40 @@ for(i in 1:5){
 ```
 
 ![](Farrow_Granger_Senkungu_Project2_files/figure-html/pairsplot_ver2-1.png)<!-- -->
+
+```r
+rm(list = c("jbreast", "cols2", "i", "j"))
+```
+
+## Corrleation Plot
+- Positive correlations are displayed in blue and negative correlations in red color.
+- Color intensity and the size of the circle are proportional to the correlation coefficients.
+
+
+```r
+corr <- cor(ed.small)
+corrplot(corr, method ="number", type= "upper")
+```
+
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/CorrelationPlot-1.png)<!-- -->
+
+```r
+corrplot(corr, method ="circle", type= "upper")
+```
+
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/CorrelationPlot-2.png)<!-- -->
+
+```r
+rm(corr)
+```
+
 ## Histogram
 - The histograms are a look at each attribute broken down by CancerState
 
 ```r
 ed.small <- entire.dataset %>% select(-c(1,11))
 
-ed.small$Clump_Thickness <- as.integer(ed.small$Clump_Thickness)
-ed.small$Uniformity_Cell_Size <- as.integer(ed.small$Uniformity_Cell_Size)
-ed.small$Uniformity_Cell_Shape <- as.integer(ed.small$Uniformity_Cell_Shape)
-ed.small$Marginal_Adhesion <- as.integer(ed.small$Marginal_Adhesion)
-ed.small$Single_Epithelial_Cell_Size <- as.integer(ed.small$Single_Epithelial_Cell_Size)
-ed.small$Bare_Nuclei <- as.integer(ed.small$Bare_Nuclei)
-ed.small$Bland_Chromatin <- as.integer(ed.small$Bland_Chromatin)
-ed.small$Normal_Nucleoli <- as.integer(ed.small$Normal_Nucleoli)
-ed.small$Mitoses <- as.integer(ed.small$Mitoses)
-
-ed.tall <- ed.small %>% 
-    select(Clump = Clump_Thickness, Cell_Size = Uniformity_Cell_Size, 
-         Cell_Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
-         Epithelial = Single_Epithelial_Cell_Size, Nuclei = Bare_Nuclei,
-         Chromatin = Bland_Chromatin, Nucleoli = Normal_Nucleoli, everything()) %>%
+ed.tall <- ed.small %>%
   gather(-10, key = "Variable", value = "Value") %>% 
   filter(!is.na(CancerState))
 
@@ -221,7 +326,6 @@ ggplot(data = ed.tall, aes(x=Value)) +
 
 ```r
 # BOXPLOT ####
-ed.small$CancerState <- as.factor(ed.small$CancerState)
 
 ed.tall <- ed.small %>% 
   gather(-10, key = "Variable", value = "Value") %>% 
@@ -237,6 +341,7 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
 
 ![](Farrow_Granger_Senkungu_Project2_files/figure-html/Boxplot-1.png)<!-- -->
 
+
 # Bruce's Work Ends Here
 
 # Rick's Work Starts Here
@@ -246,41 +351,6 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
 You can also embed plots, for example:
 
 
-```
-## 
-## Attaching package: 'MASS'
-```
-
-```
-## The following object is masked from 'package:dplyr':
-## 
-##     select
-```
-
-```
-##                1   10    2    3    4    5    6    7    8 Mitoses  Sum
-##                                                                      
-##           2    0    0    0    0    0    0    0    0    0       0    2
-## 2         0  890    0   16    4    0    2    0    2    2       0  916
-## 4         0  268   28   54   62   24   10    6   16   14       0  482
-## Class     0    0    0    0    0    0    0    0    0    0       1    1
-## Sum       2 1158   28   70   66   24   12    6   18   16       1 1401
-```
-
-```
-##        
-##                             1         10          2          3          4
-##         1.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000
-##   2     0.00000000 0.76856649 0.00000000 0.22857143 0.06060606 0.00000000
-##   4     0.00000000 0.23143351 1.00000000 0.77142857 0.93939394 1.00000000
-##   Class 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000 0.00000000
-##        
-##                  5          6          7          8    Mitoses
-##         0.00000000 0.00000000 0.00000000 0.00000000 0.00000000
-##   2     0.16666667 0.00000000 0.11111111 0.12500000 0.00000000
-##   4     0.83333333 1.00000000 0.88888889 0.87500000 0.00000000
-##   Class 0.00000000 0.00000000 0.00000000 0.00000000 1.00000000
-```
 
 # Rick's Work Ends Here
 
