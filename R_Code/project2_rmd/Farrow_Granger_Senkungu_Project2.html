@@ -134,6 +134,7 @@ $(document).ready(function () {
 <li>Tidyverse</li>
 <li>Amelia</li>
 <li>Corrplot</li>
+<li>PSCL</li>
 </ul>
 </div>
 <div id="load-data" class="section level2">
@@ -291,6 +292,7 @@ ggplot(data=entire.dataset.percent, aes(x = CancerState, y = perc, colour = Canc
 </ul></li>
 </ul>
 <pre class="r"><code>ed.small &lt;- entire.dataset %&gt;% select(-c(1,12))
+
 cols &lt;- character(nrow(ed.small))
 cols[] &lt;- &quot;black&quot;
 cols[ed.small$Class == 2] &lt;- &quot;blue&quot;
@@ -428,6 +430,7 @@ summary(wdbc.glm.fit)</code></pre>
 ## AIC: 190.9
 ## 
 ## Number of Fisher Scoring iterations: 8</code></pre>
+<p>Assessing Model Fit:</p>
 <p>The following attributes are NOT statistically significant: * Cell_Size * Epithelial</p>
 <p>The following attributes ARE statistically significant: * Clump * Nuclei * Chromatin * Adhesion * Cell_Shape * Mitoses</p>
 <ul>
@@ -460,6 +463,15 @@ summary(wdbc.glm.fit)</code></pre>
 ## Mitoses     1     8.08       969     170.90  0.004474 ** 
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+<p>Assessing Table of Deviance (ToD):</p>
+<p>From the ToD we are able to see the difference between the null deviance versus the residual deviance. The ToD shows how our model is doing against the null model, which is a model with only the intercept. The wider this gap between the model versus the null, the better.</p>
+<p>By adding Clump and Cell_Size to the model drastically reduces the residual deviance. All attributes have 0.05 p-value or less.</p>
+<p>While no exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:</p>
+<pre class="r"><code>pR2(wdbc.glm.fit)</code></pre>
+<pre><code>##          llh      llhNull           G2     McFadden         r2ML 
+##  -85.4477461 -635.2926170 1099.6897419    0.8654986    0.6747882 
+##         r2CU 
+##    0.9283365</code></pre>
 </div>
 </div>
 <div id="bruces-work-ends-here" class="section level1">

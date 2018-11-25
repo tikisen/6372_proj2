@@ -15,11 +15,13 @@ knitr::opts_chunk$set(echo = TRUE)
 - Tidyverse 
 - Amelia
 - Corrplot
+- PSCL
 
 ```{r Load_Libraries, include=FALSE}
 library(tidyverse)
 library(Amelia)
 library(corrplot)
+library(pscl)
 ```
 
 ## Load Data
@@ -137,6 +139,7 @@ rm(entire.dataset.percent)
 
 ```{r pairsplot_ver1}
 ed.small <- entire.dataset %>% select(-c(1,12))
+
 cols <- character(nrow(ed.small))
 cols[] <- "black"
 cols[ed.small$Class == 2] <- "blue"
@@ -245,18 +248,19 @@ wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = binomial(link =
 
 summary(wdbc.glm.fit)
 ```
+Assessing Model Fit:
 
 The following attributes are NOT statistically significant:
 * Cell_Size
 * Epithelial
   
 The following attributes ARE statistically significant:
-  * Clump
-  * Nuclei
-  * Chromatin
-  * Adhesion
-  * Cell_Shape
-  * Mitoses
+* Clump
+* Nuclei
+* Chromatin
+* Adhesion
+* Cell_Shape
+* Mitoses
   
 - In this logit model, the response valirable (CancerState) is log odds, a unit increase in Clump increases the odds by 0.6, a unit increase in Nuclei increases the odds by 0.4, and a unit increase in Chromatin increases the odds by 0.5.
 - The null deviance (the deviance just for the mean) is 1271 and the residual deviance (the deviance for the model) is 171.
@@ -267,6 +271,21 @@ The following attributes ARE statistically significant:
 ```{r GLM_FIT_ANOVA}
 anova(wdbc.glm.fit, test = "Chisq")
 ```
+
+Assessing Table of Deviance (ToD):
+
+From the ToD we are able to see the difference between the null deviance versus the residual deviance.  The ToD shows how our model is doing against the null model, which is a model with only the intercept. The wider this gap between the model versus the null, the better.
+
+By adding Clump and Cell_Size to the model drastically reduces the residual deviance.  All attributes have 0.05 p-value or less.
+
+While no exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:
+```{r RSquare_LinearRegression}
+pr2_mc <- pR2(wdbc.glm.fit)
+pr2_mc[[4]]
+```
+
+
+
 # Bruce's Work Ends Here
 
 # Rick's Work Starts Here

@@ -13,6 +13,7 @@ output:
 - Tidyverse 
 - Amelia
 - Corrplot
+- PSCL
 
 
 
@@ -224,6 +225,7 @@ rm(entire.dataset.percent)
 
 ```r
 ed.small <- entire.dataset %>% select(-c(1,12))
+
 cols <- character(nrow(ed.small))
 cols[] <- "black"
 cols[ed.small$Class == 2] <- "blue"
@@ -393,18 +395,19 @@ summary(wdbc.glm.fit)
 ## 
 ## Number of Fisher Scoring iterations: 8
 ```
+Assessing Model Fit:
 
 The following attributes are NOT statistically significant:
 * Cell_Size
 * Epithelial
   
 The following attributes ARE statistically significant:
-  * Clump
-  * Nuclei
-  * Chromatin
-  * Adhesion
-  * Cell_Shape
-  * Mitoses
+* Clump
+* Nuclei
+* Chromatin
+* Adhesion
+* Cell_Shape
+* Mitoses
   
 - In this logit model, the response valirable (CancerState) is log odds, a unit increase in Clump increases the odds by 0.6, a unit increase in Nuclei increases the odds by 0.4, and a unit increase in Chromatin increases the odds by 0.5.
 - The null deviance (the deviance just for the mean) is 1271 and the residual deviance (the deviance for the model) is 171.
@@ -441,6 +444,28 @@ anova(wdbc.glm.fit, test = "Chisq")
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
+
+Assessing Table of Deviance (ToD):
+
+From the ToD we are able to see the difference between the null deviance versus the residual deviance.  The ToD shows how our model is doing against the null model, which is a model with only the intercept. The wider this gap between the model versus the null, the better.
+
+By adding Clump and Cell_Size to the model drastically reduces the residual deviance.  All attributes have 0.05 p-value or less.
+
+While no exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:
+
+```r
+pR2(wdbc.glm.fit)
+```
+
+```
+##          llh      llhNull           G2     McFadden         r2ML 
+##  -85.4477461 -635.2926170 1099.6897419    0.8654986    0.6747882 
+##         r2CU 
+##    0.9283365
+```
+
+
+
 # Bruce's Work Ends Here
 
 # Rick's Work Starts Here
