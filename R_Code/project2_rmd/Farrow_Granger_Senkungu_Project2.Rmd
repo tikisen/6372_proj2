@@ -262,7 +262,63 @@ You can also embed plots, for example:
 
 #TQ's Work Starts Here
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+##PCA
+
+```{r PCA}
+attach(entire.dataset)
+#table of counts
+ftable(addmargins(table(CancerState, Clump)))
+ftable(addmargins(table(CancerState, Cell_Size)))
+ftable(addmargins(table(CancerState, Cell_Shape)))
+ftable(addmargins(table(CancerState, Adhesion)))
+ftable(addmargins(table(CancerState, Epithelial)))
+ftable(addmargins(table(CancerState, Nuclei)))
+ftable(addmargins(table(CancerState, Chromatin)))
+ftable(addmargins(table(CancerState, Nucleoli)))
+ftable(addmargins(table(CancerState, Mitoses)))
+
+#in proprtions
+prop.table(table(CancerState, Clump),2)
+prop.table(table(CancerState, Cell_Size),2)
+prop.table(table(CancerState, Cell_Shape),2)
+prop.table(table(CancerState, Adhesion),2)
+prop.table(table(CancerState, Epithelial),2)
+prop.table(table(CancerState, Nuclei),2)
+prop.table(table(CancerState, Chromatin),2)
+prop.table(table(CancerState, Nucleoli),2)
+prop.table(table(CancerState, Mitoses),2)
+
+#vizualize 
+plot(CancerState~Clump,col=c("red","blue"))
+plot(CancerState~Cell_Shape,col=c("red","blue"))
+plot(CancerState~Cell_Size,col=c("red","blue"))
+plot(CancerState~Adhesion,col=c("red","blue"))
+plot(CancerState~Epithelial,col=c("red","blue"))
+plot(CancerState~Nuclei,col=c("red","blue"))
+plot(CancerState~Chromatin,col=c("red","blue"))
+plot(CancerState~Nucleoli,col=c("red","blue"))
+plot(CancerState~Mitoses,col=c("red","blue"))
+
+dev.off()
+plot(cars)
+```
+
+## Stepwise Regression
+
+```{r stepwise}
+?lm
+
+full.model <- lm (Class ~., data = entire.dataset)
+```
+
+## LDA
+
+```{r LDA}
+entire.dataset.continuous <- entire.dataset[, c(2:11)]
+pairs(entire.dataset.continuous[,1:10])
+
+```
 
 
 #TQ's Work Ends Here
