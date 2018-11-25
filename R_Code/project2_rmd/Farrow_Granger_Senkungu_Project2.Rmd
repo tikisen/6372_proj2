@@ -263,9 +263,9 @@ You can also embed plots, for example:
 #TQ's Work Starts Here
 
 
-##PCA
+##Proportions
 
-```{r PCA}
+```{r proportions}
 attach(entire.dataset)
 #table of counts
 ftable(addmargins(table(CancerState, Clump)))
@@ -300,9 +300,57 @@ plot(CancerState~Chromatin,col=c("red","blue"))
 plot(CancerState~Nucleoli,col=c("red","blue"))
 plot(CancerState~Mitoses,col=c("red","blue"))
 
-dev.off()
-plot(cars)
 ```
+
+## PCA
+
+```{r PCA}
+pc.result<-prcomp(entire.dataset[,2:11],scale.=TRUE)
+pc.scores<-pc.result$x
+pc.scores<-data.frame(pc.scores)
+pc.scores$Class<-entire.dataset$Class
+
+#Scree plot
+eigenvals<-(pc.result$sdev)^2
+plot(1:10,eigenvals/sum(eigenvals),type="l",main="Scree Plot PC's",ylab="Prop. Var. Explained",ylim=c(0,1))
+cumulative.prop<-cumsum(eigenvals/sum(eigenvals))
+lines(1:10,cumulative.prop,lty=2)
+
+
+#Use ggplot2 to plot the first few pc's
+ggplot(data = pc.scores, aes(x = PC1, y = PC2)) +
+  geom_point(aes(col=Class), size=1)+
+  ggtitle("PCA of Cancer Status")
+
+ggplot(data = pc.scores, aes(x = PC2, y = PC3)) +
+  geom_point(aes(col=Class), size=1)+
+  ggtitle("PCA of Cancer Status")
+
+ggplot(data = pc.scores, aes(x = PC1, y = PC3)) +
+  geom_point(aes(col=Class), size=1)+
+  ggtitle("PCA of Cancer Status")
+```
+## Separation
+
+PC1 vs PC2 and PC1 vs PC3 show good separation so some variable is a good predictor of cancer status.
+
+
+## LDA & QDA
+
+```{r LDA_QDA}
+library(ROCR)
+library(MASS)
+mylda<- lda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
+myqda<- qda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
+
+#confusion matrix
+set.seed(2134)
+index<-sample(1:385,250,replace=FALSE)
+test.entire.dataset<-entire.dataset[-index,]
+prd<-predict(mylda, newdata = test.entire.dataset)$class
+table(prd,test.entire.dataset$Class)
+```
+
 
 ## Stepwise Regression
 
