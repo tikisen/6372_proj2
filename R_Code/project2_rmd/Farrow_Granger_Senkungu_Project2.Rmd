@@ -34,9 +34,11 @@ install.if.nec <- function(x){
 
 #  Try/install necessary packages
 # Use this function wherever you make use of other packages.
-install.if.nec( c("tidyverse", "Amelia", "corrplot", "pscl") )
+install.if.nec( c("tidyverse", "Amelia", "corrplot", "pscl", "ROCR", "MASS" ) )
+#  Try/install necessary packages
 
-
+library(ROCR)
+library(MASS)
 library(tidyverse)
 library(Amelia)
 library(corrplot)
@@ -406,10 +408,6 @@ PC1 vs PC2 and PC1 vs PC3 show good separation so some variable is a good predic
 ## LDA & QDA
 
 ```{r LDA_QDA}
-#  Try/install necessary packages
-install.if.nec( c("ROCR" , "MASS") )
-library(ROCR)
-library(MASS)
 
 mylda<- lda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
 myqda<- qda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
