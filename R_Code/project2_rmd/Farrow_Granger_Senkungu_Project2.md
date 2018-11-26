@@ -33,10 +33,6 @@ wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/mast
 wdbc_data <- wdbc_data %>% filter(ID !="Sample_code_number")
 ```
 
-```
-## Warning: package 'bindrcpp' was built under R version 3.4.4
-```
-
 # Bruce's Work Starts Here
 
 ## Check for missing values
@@ -869,19 +865,16 @@ PC1 vs PC2 and PC1 vs PC3 show good separation so some variable is a good predic
 
 
 ```r
-library(ROCR)
+#  Try/install necessary packages
+install.if.nec( c("ROCR" , "MASS") )
 ```
 
 ```
-## Warning: package 'ROCR' was built under R version 3.4.4
+## Loading required package: ROCR
 ```
 
 ```
 ## Loading required package: gplots
-```
-
-```
-## Warning: package 'gplots' was built under R version 3.4.4
 ```
 
 ```
@@ -895,8 +888,8 @@ library(ROCR)
 ##     lowess
 ```
 
-```r
-library(MASS)
+```
+## Loading required package: MASS
 ```
 
 ```
@@ -911,6 +904,9 @@ library(MASS)
 ```
 
 ```r
+library(ROCR)
+library(MASS)
+
 mylda<- lda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
 myqda<- qda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
 
@@ -928,6 +924,25 @@ table(prd,test.entire.dataset$Class)
 ##   2 761  29
 ##   4  13 345
 ```
+
+```r
+#ROC
+ldaprd<-predict(mylda, newdata = entire.dataset)$posterior
+#correcting for the way lda creates predicted probabilities
+ldaprd<-ldaprd[,2]
+
+pred <- prediction(ldaprd, entire.dataset$Class)
+roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")
+auc.train <- performance(pred, measure = "auc")
+auc.train <- auc.train@y.values
+
+#Plot ROC
+plot(roc.perf,main="LDA")
+abline(a=0, b= 1) #Ref line indicating poor performance
+text(x = .40, y = .6,paste("AUC = ", round(auc.train[[1]],3), sep = ""))
+```
+
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/LDA_QDA-1.png)<!-- -->
 
 
 ## Stepwise Regression

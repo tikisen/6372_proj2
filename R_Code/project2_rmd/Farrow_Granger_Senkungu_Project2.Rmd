@@ -18,6 +18,25 @@ knitr::opts_chunk$set(echo = TRUE)
 - PSCL
 
 ```{r Load_Libraries, include=FALSE}
+# function to install any missing packages if needd to run knitr
+
+install.if.nec <- function(x){
+  for( i in x ){
+    #  require returns TRUE invisibly if it was able to load package
+    if( ! require( i , character.only = TRUE ) ){
+      #  If package was not able to be loaded then re-install
+      install.packages( i , dependencies = TRUE, repos = "http://cran.us.r-project.org")
+      #  Load package after installing
+      require( i , character.only = TRUE )
+    }
+  }
+}
+
+#  Try/install necessary packages
+# Use this function wherever you make use of other packages.
+install.if.nec( c("tidyverse", "Amelia", "corrplot", "pscl") )
+
+
 library(tidyverse)
 library(Amelia)
 library(corrplot)
@@ -387,8 +406,11 @@ PC1 vs PC2 and PC1 vs PC3 show good separation so some variable is a good predic
 ## LDA & QDA
 
 ```{r LDA_QDA}
+#  Try/install necessary packages
+install.if.nec( c("ROCR" , "MASS") )
 library(ROCR)
 library(MASS)
+
 mylda<- lda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
 myqda<- qda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
 
