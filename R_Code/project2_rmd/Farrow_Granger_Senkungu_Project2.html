@@ -466,12 +466,23 @@ summary(wdbc.glm.fit)</code></pre>
 <p>Assessing Table of Deviance (ToD):</p>
 <p>From the ToD we are able to see the difference between the null deviance versus the residual deviance. The ToD shows how our model is doing against the null model, which is a model with only the intercept. The wider this gap between the model versus the null, the better.</p>
 <p>By adding Clump and Cell_Size to the model drastically reduces the residual deviance. All attributes have 0.05 p-value or less.</p>
-<p>While no exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:</p>
-<pre class="r"><code>pR2(wdbc.glm.fit)</code></pre>
-<pre><code>##          llh      llhNull           G2     McFadden         r2ML 
-##  -85.4477461 -635.2926170 1099.6897419    0.8654986    0.6747882 
-##         r2CU 
-##    0.9283365</code></pre>
+<p>Eventhough there is not an exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:</p>
+<pre class="r"><code>pr2_mc &lt;- pR2(wdbc.glm.fit)
+pr2_mc[[4]]</code></pre>
+<pre><code>## [1] 0.8654986</code></pre>
+<p>Assessing the predictive ability of the model</p>
+<pre class="r"><code>glm.probs &lt;- predict(wdbc.glm.fit,type = &quot;response&quot;)
+glm.probs[1:5]</code></pre>
+<pre><code>##        1008        1224        1063        1237         637 
+## 0.998342115 0.003956658 0.043678314 0.030102178 0.999781209</code></pre>
+<pre class="r"><code>glm.pred &lt;- ifelse(glm.probs &gt; 0.5, &quot;Malignanat&quot;,&quot;Benign&quot;)
+
+attach(wdbc.train)
+table(glm.pred,CancerState)</code></pre>
+<pre><code>##             CancerState
+## glm.pred     Benign Malignant
+##   Benign        616        17
+##   Malignanat     18       328</code></pre>
 </div>
 </div>
 <div id="bruces-work-ends-here" class="section level1">
@@ -491,8 +502,12 @@ summary(wdbc.glm.fit)</code></pre>
 <h1>TQ’s Work Starts Here</h1>
 <div id="proportions" class="section level2">
 <h2>Proportions</h2>
-<pre class="r"><code>attach(entire.dataset)
-#table of counts
+<pre class="r"><code>attach(entire.dataset)</code></pre>
+<pre><code>## The following objects are masked from wdbc.train:
+## 
+##     Adhesion, CancerState, Cell_Shape, Cell_Size, Chromatin,
+##     Clump, Epithelial, Mitoses, Nuclei, Nucleoli</code></pre>
+<pre class="r"><code>#table of counts
 ftable(addmargins(table(CancerState, Clump)))</code></pre>
 <pre><code>##             Clump    1    2    3    4    5    6    7    8    9   10  Sum
 ## CancerState                                                             

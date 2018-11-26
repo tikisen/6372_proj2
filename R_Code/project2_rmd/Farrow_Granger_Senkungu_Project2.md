@@ -451,19 +451,42 @@ From the ToD we are able to see the difference between the null deviance versus 
 
 By adding Clump and Cell_Size to the model drastically reduces the residual deviance.  All attributes have 0.05 p-value or less.
 
-While no exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:
+Eventhough there is not an exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:
 
 ```r
-pR2(wdbc.glm.fit)
+pr2_mc <- pR2(wdbc.glm.fit)
+pr2_mc[[4]]
 ```
 
 ```
-##          llh      llhNull           G2     McFadden         r2ML 
-##  -85.4477461 -635.2926170 1099.6897419    0.8654986    0.6747882 
-##         r2CU 
-##    0.9283365
+## [1] 0.8654986
 ```
 
+Assessing the predictive ability of the model
+
+```r
+glm.probs <- predict(wdbc.glm.fit,type = "response")
+glm.probs[1:5]
+```
+
+```
+##        1008        1224        1063        1237         637 
+## 0.998342115 0.003956658 0.043678314 0.030102178 0.999781209
+```
+
+```r
+glm.pred <- ifelse(glm.probs > 0.5, "Malignanat","Benign")
+
+attach(wdbc.train)
+table(glm.pred,CancerState)
+```
+
+```
+##             CancerState
+## glm.pred     Benign Malignant
+##   Benign        616        17
+##   Malignanat     18       328
+```
 
 
 # Bruce's Work Ends Here
@@ -486,6 +509,16 @@ You can also embed plots, for example:
 
 ```r
 attach(entire.dataset)
+```
+
+```
+## The following objects are masked from wdbc.train:
+## 
+##     Adhesion, CancerState, Cell_Shape, Cell_Size, Chromatin,
+##     Clump, Epithelial, Mitoses, Nuclei, Nucleoli
+```
+
+```r
 #table of counts
 ftable(addmargins(table(CancerState, Clump)))
 ```

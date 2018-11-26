@@ -278,12 +278,21 @@ From the ToD we are able to see the difference between the null deviance versus 
 
 By adding Clump and Cell_Size to the model drastically reduces the residual deviance.  All attributes have 0.05 p-value or less.
 
-While no exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:
-```{r RSquare_LinearRegression}
+Eventhough there is not an exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:
+```{r ModelFit}
 pr2_mc <- pR2(wdbc.glm.fit)
 pr2_mc[[4]]
 ```
 
+Assessing the predictive ability of the model
+```{r PredictTarining}
+glm.probs <- predict(wdbc.glm.fit,type = "response")
+glm.probs[1:5]
+glm.pred <- ifelse(glm.probs > 0.5, "Malignanat","Benign")
+
+attach(wdbc.train)
+table(glm.pred,CancerState)
+```
 
 
 # Bruce's Work Ends Here
