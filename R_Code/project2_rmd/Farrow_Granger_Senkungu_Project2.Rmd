@@ -398,6 +398,21 @@ index<-sample(1:385,250,replace=FALSE)
 test.entire.dataset<-entire.dataset[-index,]
 prd<-predict(mylda, newdata = test.entire.dataset)$class
 table(prd,test.entire.dataset$Class)
+
+#ROC
+ldaprd<-predict(mylda, newdata = entire.dataset)$posterior
+#correcting for the way lda creates predicted probabilities
+ldaprd<-ldaprd[,2]
+
+pred <- prediction(ldaprd, entire.dataset$Class)
+roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")
+auc.train <- performance(pred, measure = "auc")
+auc.train <- auc.train@y.values
+
+#Plot ROC
+plot(roc.perf,main="LDA")
+abline(a=0, b= 1) #Ref line indicating poor performance
+text(x = .40, y = .6,paste("AUC = ", round(auc.train[[1]],3), sep = ""))
 ```
 
 
