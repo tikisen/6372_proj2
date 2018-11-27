@@ -106,13 +106,13 @@ wdbc.data <- wdbc.data %>%
          Epithelial = Single_Epithelial_Cell_Size, Nuclei = Bare_Nuclei,
          Chromatin = Bland_Chromatin, Nucleoli = Normal_Nucleoli, everything())
 
-wdbc.data %>% dplyr::select(Nucleoli) %>% summary()
+wdbc.data %>% dplyr::select(Nuclei) %>% summary()
 
 wdbc.data$Nuclei <- ifelse(is.na(wdbc.data$Nuclei),
                            median(wdbc.data$Nuclei, na.rm=TRUE), 
                            wdbc.data$Nuclei)
 
-wdbc.data %>% dplyr::select(Nucleoli) %>% summary()
+wdbc.data %>% dplyr::select(Nuclei) %>% summary()
 
 entire.dataset <- wdbc.data %>% 
   mutate(CancerState = case_when(Class == 2 ~ "Benign",

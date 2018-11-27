@@ -111,17 +111,18 @@ wdbc.data <- wdbc.data %>%
          Epithelial = Single_Epithelial_Cell_Size, Nuclei = Bare_Nuclei,
          Chromatin = Bland_Chromatin, Nucleoli = Normal_Nucleoli, everything())
 
-wdbc.data %>% dplyr::select(Nucleoli) %>% summary()
+wdbc.data %>% dplyr::select(Nuclei) %>% summary()
 ```
 
 ```
-##     Nucleoli     
+##      Nuclei      
 ##  Min.   : 1.000  
 ##  1st Qu.: 1.000  
 ##  Median : 1.000  
-##  Mean   : 2.867  
-##  3rd Qu.: 4.000  
-##  Max.   :10.000
+##  Mean   : 3.545  
+##  3rd Qu.: 6.000  
+##  Max.   :10.000  
+##  NA's   :32
 ```
 
 ```r
@@ -129,16 +130,16 @@ wdbc.data$Nuclei <- ifelse(is.na(wdbc.data$Nuclei),
                            median(wdbc.data$Nuclei, na.rm=TRUE), 
                            wdbc.data$Nuclei)
 
-wdbc.data %>% dplyr::select(Nucleoli) %>% summary()
+wdbc.data %>% dplyr::select(Nuclei) %>% summary()
 ```
 
 ```
-##     Nucleoli     
+##      Nuclei      
 ##  Min.   : 1.000  
 ##  1st Qu.: 1.000  
 ##  Median : 1.000  
-##  Mean   : 2.867  
-##  3rd Qu.: 4.000  
+##  Mean   : 3.486  
+##  3rd Qu.: 5.000  
 ##  Max.   :10.000
 ```
 
