@@ -88,7 +88,6 @@ rm(wdbc_data)
 - Add an attribute called CancerState, which is similiar to the Class attribute, the difference is that CancerState uses words to describe the condition, meaning when Class == 2, then "Benign" and when Class == 4, then "Malignanat"
 
 ```{r AttributeCoercion}
-
 wdbc.data$ID <- as.integer(wdbc.data$ID)
 wdbc.data$Clump_Thickness <- as.integer(wdbc.data$Clump_Thickness)
 wdbc.data$Uniformity_Cell_Size <- as.integer(wdbc.data$Uniformity_Cell_Size)
@@ -102,18 +101,18 @@ wdbc.data$Mitoses <- as.integer(wdbc.data$Mitoses)
 wdbc.data$Class <- as.integer(wdbc.data$Class)
 
 wdbc.data <- wdbc.data %>%
-  select(ID = ID, Clump = Clump_Thickness, Cell_Size = Uniformity_Cell_Size, 
+  dplyr::select(ID, Clump = Clump_Thickness, Cell_Size = Uniformity_Cell_Size, 
          Cell_Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
          Epithelial = Single_Epithelial_Cell_Size, Nuclei = Bare_Nuclei,
          Chromatin = Bland_Chromatin, Nucleoli = Normal_Nucleoli, everything())
 
-wdbc.data %>% select(Nuclei) %>% summary()
+wdbc.data %>% dplyr::select(Nucleoli) %>% summary()
 
 wdbc.data$Nuclei <- ifelse(is.na(wdbc.data$Nuclei),
                            median(wdbc.data$Nuclei, na.rm=TRUE), 
                            wdbc.data$Nuclei)
 
-wdbc.data %>% select(Nuclei) %>% summary()
+wdbc.data %>% dplyr::select(Nucleoli) %>% summary()
 
 entire.dataset <- wdbc.data %>% 
   mutate(CancerState = case_when(Class == 2 ~ "Benign",
@@ -125,7 +124,7 @@ entire.dataset$CancerState <- as.factor(entire.dataset$CancerState)
 
 ## Summary Statistics/Histograms
 ```{r SummaryStats}
-entire.dataset %>% select(c(2:12)) %>% summary() 
+entire.dataset %>% dplyr::select(c(2:12)) %>% summary() 
 
 # TOTAL COUNT BY CANCER TYPE ####
 ggplot(data=entire.dataset, aes(x=CancerState, colour = CancerState)) +
@@ -159,7 +158,7 @@ rm(entire.dataset.percent)
     * Red = Malignanat
 
 ```{r pairsplot_ver1}
-ed.small <- entire.dataset %>% select(-c(1,12))
+ed.small <- entire.dataset %>% dplyr::select(-c(1,12))
 
 cols <- character(nrow(ed.small))
 cols[] <- "black"
@@ -227,7 +226,7 @@ rm(corr)
 - The histograms are a look at each attribute broken down by CancerState
 
 ```{r histogram}
-ed.small <- entire.dataset %>% select(-c(1,11))
+ed.small <- entire.dataset %>% dplyr::select(-c(1,11))
 
 ed.tall <- ed.small %>%
   gather(-10, key = "Variable", value = "Value") %>% 

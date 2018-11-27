@@ -33,6 +33,10 @@ wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/mast
 wdbc_data <- wdbc_data %>% filter(ID !="Sample_code_number")
 ```
 
+```
+## Warning: package 'bindrcpp' was built under R version 3.4.4
+```
+
 # Bruce's Work Starts Here
 
 ## Check for missing values
@@ -102,23 +106,22 @@ wdbc.data$Mitoses <- as.integer(wdbc.data$Mitoses)
 wdbc.data$Class <- as.integer(wdbc.data$Class)
 
 wdbc.data <- wdbc.data %>%
-  select(ID = ID, Clump = Clump_Thickness, Cell_Size = Uniformity_Cell_Size, 
+  dplyr::select(ID, Clump = Clump_Thickness, Cell_Size = Uniformity_Cell_Size, 
          Cell_Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
          Epithelial = Single_Epithelial_Cell_Size, Nuclei = Bare_Nuclei,
          Chromatin = Bland_Chromatin, Nucleoli = Normal_Nucleoli, everything())
 
-wdbc.data %>% select(Nuclei) %>% summary()
+wdbc.data %>% dplyr::select(Nucleoli) %>% summary()
 ```
 
 ```
-##      Nuclei      
+##     Nucleoli     
 ##  Min.   : 1.000  
 ##  1st Qu.: 1.000  
 ##  Median : 1.000  
-##  Mean   : 3.545  
-##  3rd Qu.: 6.000  
-##  Max.   :10.000  
-##  NA's   :32
+##  Mean   : 2.867  
+##  3rd Qu.: 4.000  
+##  Max.   :10.000
 ```
 
 ```r
@@ -126,16 +129,16 @@ wdbc.data$Nuclei <- ifelse(is.na(wdbc.data$Nuclei),
                            median(wdbc.data$Nuclei, na.rm=TRUE), 
                            wdbc.data$Nuclei)
 
-wdbc.data %>% select(Nuclei) %>% summary()
+wdbc.data %>% dplyr::select(Nucleoli) %>% summary()
 ```
 
 ```
-##      Nuclei      
+##     Nucleoli     
 ##  Min.   : 1.000  
 ##  1st Qu.: 1.000  
 ##  Median : 1.000  
-##  Mean   : 3.486  
-##  3rd Qu.: 5.000  
+##  Mean   : 2.867  
+##  3rd Qu.: 4.000  
 ##  Max.   :10.000
 ```
 
@@ -151,7 +154,7 @@ entire.dataset$CancerState <- as.factor(entire.dataset$CancerState)
 ## Summary Statistics/Histograms
 
 ```r
-entire.dataset %>% select(c(2:12)) %>% summary() 
+entire.dataset %>% dplyr::select(c(2:12)) %>% summary() 
 ```
 
 ```
@@ -220,7 +223,7 @@ rm(entire.dataset.percent)
 
 
 ```r
-ed.small <- entire.dataset %>% select(-c(1,12))
+ed.small <- entire.dataset %>% dplyr::select(-c(1,12))
 
 cols <- character(nrow(ed.small))
 cols[] <- "black"
@@ -309,7 +312,7 @@ rm(corr)
 
 
 ```r
-ed.small <- entire.dataset %>% select(-c(1,11))
+ed.small <- entire.dataset %>% dplyr::select(-c(1,11))
 
 ed.tall <- ed.small %>%
   gather(-10, key = "Variable", value = "Value") %>% 
@@ -865,48 +868,6 @@ PC1 vs PC2 and PC1 vs PC3 show good separation so some variable is a good predic
 
 
 ```r
-#  Try/install necessary packages
-install.if.nec( c("ROCR" , "MASS") )
-```
-
-```
-## Loading required package: ROCR
-```
-
-```
-## Loading required package: gplots
-```
-
-```
-## 
-## Attaching package: 'gplots'
-```
-
-```
-## The following object is masked from 'package:stats':
-## 
-##     lowess
-```
-
-```
-## Loading required package: MASS
-```
-
-```
-## 
-## Attaching package: 'MASS'
-```
-
-```
-## The following object is masked from 'package:dplyr':
-## 
-##     select
-```
-
-```r
-library(ROCR)
-library(MASS)
-
 mylda<- lda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
 myqda<- qda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
 
