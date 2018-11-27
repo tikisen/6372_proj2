@@ -82,7 +82,7 @@ rm(wdbc_data)
 
 - Attributes will be coerced from character to numeric data type. 
 - 32 NA will be introduced into the Bare_Nuclei attribute, the median will replace the NA values.
-- Add an attribute called CancerState, which is similiar to the Class attribute, the difference is that CancerState uses words to describe the condition, meaning when Class == 2, then "Benign" and when Class == 4, then "Malignanat"
+- Add an attribute called CancerState, which is similiar to the Class attribute, the difference is that CancerState uses words to describe the condition, meaning when Class == 2, then "Benign" and when Class == 4, then "Malignant "
 
 
 ```r
@@ -189,7 +189,7 @@ ggplot(data=entire.dataset, aes(x=CancerState, colour = CancerState)) +
   geom_text(stat='Count', aes(label=..count..), vjust = 10) +
   theme(legend.position = "none") +
   scale_color_manual(values = c("blue", "red")) +
-  ggtitle("Total Count by Cancer Type: Blue = Benign; Red = Malignanat") 
+  ggtitle("Total Count by Cancer Type: Blue = Benign; Red = Malignant ") 
 ```
 
 ![](Farrow_Granger_Senkungu_Project2_files/figure-html/SummaryStats-1.png)<!-- -->
@@ -205,7 +205,7 @@ ggplot(data=entire.dataset.percent, aes(x = CancerState, y = perc, colour = Canc
   geom_text(stat = "identity", aes(label=round(perc*100,2)), vjust = 10) +
   theme(legend.position = "none") +
   scale_color_manual(values = c("blue", "red")) +
-  ggtitle("Percent of Total by Cancer Type: Blue = Benign; Red = Malignanat")
+  ggtitle("Percent of Total by Cancer Type: Blue = Benign; Red = Malignant ")
 ```
 
 ![](Farrow_Granger_Senkungu_Project2_files/figure-html/SummaryStats-2.png)<!-- -->
@@ -214,13 +214,17 @@ ggplot(data=entire.dataset.percent, aes(x = CancerState, y = perc, colour = Canc
 rm(entire.dataset.percent) 
 ```
 
+- Ideally, the proportion of events and non-events in the Y variable should approximately be the same.
+- From the above histograms it is obvious there is a class bias, a condition observed when the Malignant proportion of events is much smaller than proportion of Benign events, by a factor of 1 to 1.9.  
+- As a result, we must sample the observations in approximately equal proportions in order to get better model.  Unfortunately we have a small sample size, which means we are not able to implement this strategy. 
+ 
 ## Pairs Plots
 - Version 1:
 - The objective of the "Pairs Plot" is to create plots based upon paring of variables
-- Additionaly, each observation is color coded to simutaleniously see if the observation is "Benign" or "Malignanat" cancer.  
+- Additionaly, each observation is color coded to simutaleniously see if the observation is "Benign" or "Malignant " cancer.  
   - Color Coding:
     * Blue = Benign 
-    * Red = Malignanat
+    * Red = Malignant 
 
 
 ```r
@@ -230,7 +234,7 @@ cols <- character(nrow(ed.small))
 cols[] <- "black"
 cols[ed.small$Class == 2] <- "blue"
 cols[ed.small$Class == 4] <- "red"
-pairs(ed.small, col=cols, main = "WDBC Pairs Plot: Blue = Benign; Red = Malignanat")
+pairs(ed.small, col=cols, main = "WDBC Pairs Plot: Blue = Benign; Red = Malignant ")
 ```
 
 ![](Farrow_Granger_Senkungu_Project2_files/figure-html/pairsplot_ver1-1.png)<!-- -->
@@ -339,7 +343,7 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
   geom_boxplot() +
   facet_wrap(~ Variable) +
   ggtitle("WDBC Boxplot ") + 
-  scale_fill_manual(breaks = c("Benign", "Malignanat"), values = c("blue", "red")) +
+  scale_fill_manual(breaks = c("Benign", "Malignant "), values = c("blue", "red")) +
   theme(legend.position="none")
 ```
 
@@ -475,7 +479,7 @@ glm.probs[1:5]
 ```
 
 ```r
-glm.pred <- ifelse(glm.probs > 0.5, "Malignanat","Benign")
+glm.pred <- ifelse(glm.probs > 0.5, "Malignant ","Benign")
 
 attach(wdbc.train)
 table(glm.pred,CancerState)
@@ -485,7 +489,7 @@ table(glm.pred,CancerState)
 ##             CancerState
 ## glm.pred     Benign Malignant
 ##   Benign        616        17
-##   Malignanat     18       328
+##   Malignant      18       328
 ```
 
 

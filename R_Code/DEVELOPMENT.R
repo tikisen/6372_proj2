@@ -131,4 +131,7 @@ wdbc.data$Nuclei <- ifelse(is.na(wdbc.data$Nuclei),
                            wdbc.data$Nuclei)
 
 wdbc.data %>% summary()
+
+#  proportion of classes 
+table(wdbc.data$Class)
                             
