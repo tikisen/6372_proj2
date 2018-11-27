@@ -349,11 +349,16 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
 
 ![](Farrow_Granger_Senkungu_Project2_files/figure-html/Boxplot-1.png)<!-- -->
 
+## Logistic Regression
+- Following the established discipline of dividing a portion of the dataset into a training set and the remainder into a test set.
+- The training set will be used to build the model and the test set will be used to validate the model.
+- The training set will consist of 20% of the data and the test set will consist of the remaining 80%.
+- A set.seed is used at the beginning of the test and training division in order to get reproducible results.
 
 ```r
 set.seed(12345) #to get repeatable data
 
-wdbc.train <- sample_frac(ed.small, 0.7, replace = FALSE)
+wdbc.train <- sample_frac(ed.small, 0.2, replace = FALSE)
 
 train.index <- as.numeric(rownames(wdbc.train))
 wdbc.test <- ed.small[-train.index,]
@@ -373,45 +378,46 @@ summary(wdbc.glm.fit)
 ##     data = wdbc.train)
 ## 
 ## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -3.4793  -0.1275  -0.0613   0.0285   2.3439  
+##      Min        1Q    Median        3Q       Max  
+## -1.52446  -0.05968  -0.01665   0.00444   2.53104  
 ## 
 ## Coefficients:
-##              Estimate Std. Error z value Pr(>|z|)    
-## (Intercept) -10.01551    0.92630 -10.812  < 2e-16 ***
-## Clump         0.61590    0.11491   5.360 8.32e-08 ***
-## Cell_Size    -0.09790    0.15511  -0.631 0.527938    
-## Cell_Shape    0.33844    0.16877   2.005 0.044931 *  
-## Adhesion      0.28207    0.08946   3.153 0.001617 ** 
-## Epithelial   -0.02268    0.12801  -0.177 0.859380    
-## Nuclei        0.41127    0.07459   5.514 3.51e-08 ***
-## Chromatin     0.48556    0.12646   3.840 0.000123 ***
-## Nucleoli      0.16994    0.08750   1.942 0.052111 .  
-## Mitoses       0.60983    0.25228   2.417 0.015635 *  
+##             Estimate Std. Error z value Pr(>|z|)    
+## (Intercept) -14.2120     3.2378  -4.389 1.14e-05 ***
+## Clump         0.8169     0.2999   2.724  0.00646 ** 
+## Cell_Size    -0.9366     0.3984  -2.351  0.01874 *  
+## Cell_Shape    0.9847     0.4535   2.171  0.02989 *  
+## Adhesion      0.5168     0.1825   2.831  0.00464 ** 
+## Epithelial   -0.5541     0.2756  -2.010  0.04440 *  
+## Nuclei        0.5243     0.1789   2.930  0.00338 ** 
+## Chromatin     0.8176     0.3005   2.720  0.00652 ** 
+## Nucleoli      0.8661     0.2727   3.177  0.00149 ** 
+## Mitoses       1.6154     0.9805   1.647  0.09946 .  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## (Dispersion parameter for binomial family taken to be 1)
 ## 
-##     Null deviance: 1270.6  on 978  degrees of freedom
-## Residual deviance:  170.9  on 969  degrees of freedom
-## AIC: 190.9
+##     Null deviance: 373.40  on 279  degrees of freedom
+## Residual deviance:  40.14  on 270  degrees of freedom
+## AIC: 60.14
 ## 
-## Number of Fisher Scoring iterations: 8
+## Number of Fisher Scoring iterations: 9
 ```
+
 Assessing Model Fit:
 
-The following attributes are NOT statistically significant:
-* Cell_Size
-* Epithelial
+The following attributes are NOT statistically significant:  
+* Cell_Size  
+* Epithelial  
   
-The following attributes ARE statistically significant:
-* Clump
-* Nuclei
-* Chromatin
-* Adhesion
-* Cell_Shape
-* Mitoses
+The following attributes ARE statistically significant:  
+* Clump  
+* Nuclei  
+* Chromatin  
+* Adhesion  
+* Cell_Shape  
+* Mitoses  
   
 - In this logit model, the response valirable (CancerState) is log odds, a unit increase in Clump increases the odds by 0.6, a unit increase in Nuclei increases the odds by 0.4, and a unit increase in Chromatin increases the odds by 0.5.
 - The null deviance (the deviance just for the mean) is 1271 and the residual deviance (the deviance for the model) is 171.
@@ -435,16 +441,16 @@ anova(wdbc.glm.fit, test = "Chisq")
 ## 
 ## 
 ##            Df Deviance Resid. Df Resid. Dev  Pr(>Chi)    
-## NULL                         978    1270.59              
-## Clump       1   605.87       977     664.72 < 2.2e-16 ***
-## Cell_Size   1   332.16       976     332.56 < 2.2e-16 ***
-## Cell_Shape  1    36.24       975     296.32 1.749e-09 ***
-## Adhesion    1    34.33       974     261.99 4.647e-09 ***
-## Epithelial  1     5.86       973     256.13  0.015493 *  
-## Nuclei      1    54.84       972     201.29 1.304e-13 ***
-## Chromatin   1    18.07       971     183.22 2.132e-05 ***
-## Nucleoli    1     4.24       970     178.98  0.039418 *  
-## Mitoses     1     8.08       969     170.90  0.004474 ** 
+## NULL                         279     373.40              
+## Clump       1  151.984       278     221.42 < 2.2e-16 ***
+## Cell_Size   1  109.367       277     112.05 < 2.2e-16 ***
+## Cell_Shape  1   17.027       276      95.03 3.686e-05 ***
+## Adhesion    1    9.118       275      85.91  0.002531 ** 
+## Epithelial  1    0.253       274      85.65  0.614766    
+## Nuclei      1   15.388       273      70.27 8.754e-05 ***
+## Chromatin   1    8.767       272      61.50  0.003068 ** 
+## Nucleoli    1   16.426       271      45.07 5.060e-05 ***
+## Mitoses     1    4.934       270      40.14  0.026326 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ```
@@ -463,35 +469,41 @@ pr2_mc[[4]]
 ```
 
 ```
-## [1] 0.8654986
+## [1] 0.8925029
 ```
 
-Assessing the predictive ability of the model
+Assessing the predictive ability of the logistic regression model by predicting from test dataset using against the training dataset:
+- The predict function provides probabilities of classification
+- Using a probabilities from the predict function, the ifelse will use the threshold of 0.5 to assign classification of "Malignant ", else it will assign a classification of "Benign"
+- A confusion matrix will provide how well the model is doing
 
 ```r
-glm.probs <- predict(wdbc.glm.fit,type = "response")
+glm.probs <- predict(wdbc.glm.fit, wdbc.test, type = "response")
 glm.probs[1:5]
 ```
 
 ```
-##        1008        1224        1063        1237         637 
-## 0.998342115 0.003956658 0.043678314 0.030102178 0.999781209
+##           1           3           4           5           6 
+## 0.005420239 0.001793804 0.896343650 0.006723025 0.999998391
 ```
 
 ```r
 glm.pred <- ifelse(glm.probs > 0.5, "Malignant ","Benign")
 
-attach(wdbc.train)
+# We are attempting to predict CancerState variabel in the dataset, this is used to evaluate what is predicted in the model to the actual state
+attach(wdbc.test)
 table(glm.pred,CancerState)
 ```
 
 ```
 ##             CancerState
 ## glm.pred     Benign Malignant
-##   Benign        616        17
-##   Malignant      18       328
+##   Benign        726        30
+##   Malignant      18       344
 ```
-
+- The confusion matrix operates on the diagonial where the model predicted **CORRECTLY**, starting at the top left (726) and the bottom right (344).
+- The off diagonial is where the model predicted **INCORRECTLY**, starting at the top left (726) and the bottom right (344).
+- Out of 1118 records, the model had 1070 accurate predictions for an accuracy rate of 96%
 
 # Bruce's Work Ends Here
 
@@ -516,7 +528,7 @@ attach(entire.dataset)
 ```
 
 ```
-## The following objects are masked from wdbc.train:
+## The following objects are masked from wdbc.test:
 ## 
 ##     Adhesion, CancerState, Cell_Shape, Cell_Size, Chromatin,
 ##     Clump, Epithelial, Mitoses, Nuclei, Nucleoli

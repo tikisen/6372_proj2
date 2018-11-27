@@ -392,9 +392,18 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
   scale_fill_manual(breaks = c(&quot;Benign&quot;, &quot;Malignant &quot;), values = c(&quot;blue&quot;, &quot;red&quot;)) +
   theme(legend.position=&quot;none&quot;)</code></pre>
 <p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAqAAAAHgCAMAAABNUi8GAAAB2lBMVEUAAAAAADoAAGYAAP8AOjoAOmYAOpAAZrYZGT8ZGWIZP2IZP4EZYp8aGhozMzM6AAA6ADo6AGY6OgA6OmY6ZmY6ZpA6ZrY6kLY6kNs/GRk/GT8/GWI/P2I/P4E/YoE/Yp8/gYE/gb1NTU1NTW5NTY5Nbo5NbqtNjqtNjshiGRliGT9iGWJiPxliPz9iP4FiYhliYj9iYmJiYp9in9lmAABmADpmOgBmOmZmOpBmZrZmkJBmtrZmtttmtv9uTU1uTW5uTY5ubqtujqtujshuq+SBPxmBPz+BP2KBYhmBYoGBgT+BgWKBn4GBvZ+BvdmOTU2OTW6OTY6Obk2Obm6Ojm6Ojo6OjsiOyP+QOgCQZjqQkDqQtpCQ27aQ29uQ2/+fYhmfYj+fn2KfvYGf2Z+f2b2f2dmrbk2rbm6rbo6rjk2rjqurq46ryKur5P+2ZgC2Zjq2kDq2kGa22/+2/9u2//+9gT+9gWK9vYG92Z+92dnIjk3Ijm7IyI7I5KvI/+TI///Zn2LZvYHZ2Z/Z2b3Z2dnbkDrbkGbbtmbb25Db29vb2//b/7bb///kq27kq47k/8jk///r6+v/AAD/tmb/yI7/25D/27b/29v/5Kv//7b//8j//9v//+T///+Y1KrWAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAfpElEQVR4nO2djX8cx1nHz6Gx7NontbQNdkxo/VJjx6FNkRreqsYG2S1tsWMKyLxZNEFKgEiUEAESFFlvLS82uJEU9Lb/K/O2LyefbkfPzOw+M/f7fRJr9+6emf3NfHd2ZvZ2rpNBEGN12j4ACBokAAqxFgCFWAuAQqwFQCHWAqAQawFQiLUAKMRaZEAXTj2WfzY7p5+KPwePTj/d7Ch94SP9utKX1E528A+/2Ol85ltFcO+7x0qmWtnd+Y2PqUcLxSoyoFudSflnoaNA3ZsYyanrqDfynZckUztjeueVPLjn3eN1BNDNmo9DCYoMqERS/vvbExcyjavm5+CnYxJZs/P3kta9ic4r/5Vl//GWZjrrfXeAAChEBlTDs3XqLx9JUCU7OT9bnQsFTDtjclu+oHZy3qrvZp++1em8/JH5mAjem7iwNdZ5+XGeh3n/4JFoci+4eIUiFH2QpCDbFF1P8VeRlANa2Tn4sWhNDx7lLd9/9sTqd7Mtdf03n9ubkP9/cSx/RaSUvw9Ah1J0QHfGJgVBI+rqvjdxoXIFXpDNqellXsg7Az2qvCu4+5YZa211RjZVYp2Rpwc/7owoQCvv4xI/hKIDKqGUkMq/asTUF9BXng4CVLy7M6beVZMCCx1Bpfi86gmIVCSglfcB6BDKYR504fTTLYnMgr7MHwFU7/xMENcP0PJdyXgmO7OPZaMs/zWf35RXdQlo8T4AHUI5ACroXJBtneBmIR8oSfV0SFU7mIP103zis/JuFdCtjh70A1AolwOgO2O/o6aY8r/9RvHmcq/HNnIEpEN7AC0u4XsTL78l3tCXeIk1LvGQA6AHj774uceVv8U8aOV6/zM5uCnnQfNBeOXd6iDo1GMJt/j4L/UfJOmbV9AwyeVe/Ka5E7Sgb3f2vZOkdvI7SSNlZPluMc0k20o91fSZMX2XqWeaSUVhmmnY5ALoliHO/NXUnfpS9V78F3Sb9+mfjvW7F6/f3TET9Qt6nDQi+qACSpmMnqjP38/23uqMPM2goRLDbzP1GfVDQysACrEWAIVYC4BCrMUQUAgqBUAh1gKgEGsBUIi1ACjEWmRAN5IQzHAVAFWCGa4CoEoww1UAVAlmuAqAKsEMVwFQJZjhKgCqBDNcBUCVYIarAKgSzHAVJ0DXXr+vN9bvjq9emn3xA31f9CKPZp50u91zS/meOOTKUa/d7HbPzgb0oeS/Zlr0xAnQJ9+4rDeOAzSc/JlZFJW1MVPUZk9lrt0cFx84txQboDae/OXWK0aArt/7g68tqTPys28IQL/e7Y6rPVk6T4qzVL+w+tp31du+5M2MvgqIMyw/0Gplqi3xidzc6kX5Z+3W97pn7hdW3eW7Ziw9zc6Idva8PxtajABdfW1pRtTazGWB4/jqRfFHnJdib1GYvjUr/8jCmFGv52/7kjcz5UHpI++pzPW7+l1z9LLixZtrN88tPTk7awI8yHfN2HmSr6zfu+/PhhYjQBdFrWkWzSVeVp6oQ/GK6Z3KF8Tb+nz12uvxB2heN+bIe/tr8kpwRlGZH700Jy6SomZNgPsh+AfU1pOsQn82tPgAun63K6/jyuhMAajogSv7F00hyNdFbbIFVFwG9IY58iOVKT/xann0M9KxOvtmxnOr7vJdM/aexAf92dDiA6gqBlFPvS1oeS4+UYML7i1o0V8zR95Tmbopqpx94/lVQrag3pod3zVj60le4L22nlJ8AF2UYx5h1/RBDYG6yyl7QRrQvA/KFdByxFsc6JERb3l6qT+v3l+7eT7vbvvpVvuuGVtPi2oSxpsNLTaArn9HWhZOxaVejeKLQbu8XswcHcWzBbSYM9RH/uKcYaUPutiVVtdefzMfxfu5NHoH1M7Te/Li3r3szYYWG0DbVZtmivsTvpRizQDQkGbkfOfxQ4c4AR3syZ8AqBLMcBUAVYIZrgKgSjDDVQBUCWa4CoAqwQxXOQP6c5KIYcFShhm3LMOlDEB1FMw4ZRkuZStAd2+vZNn+gyvXn6vdciu1Ymgyy3App2hmIKDbV66tZIdz09mzG3K33CIXw+joKCnOQqjTJM0MAnT56oeiBd1/uKJb0soWtRhGR8MRijpN0kz9JX73zvNs/515uVdsSc4GxR2nUWqgTdqB0m1FMZkZ9aABydcCun09x7LckqKcFSFbUFq6DmZCNjoxmRn9xFn97FoD2q8FJRdDwD5oTHVaq5jMtA2ozz4o6tRSMZlpG9DDualiFD/lOopHndopJjNtA2pmP1VjynkeNKY6rVVMZtoEdJAaLoZaxVSntYrJDAC1U0x1WquYzCQFKEbxdmreDL1mUgIU86CWatyMQ80AUMu0SVGtAOrj3suAOiUfEtENALVLmxTVDqDuVTqoTkmHBEDzcqCVgkXSpCgAmh9Tcn1Qboro+xVeAG3bRCEfgA5IHtNMzZvh2IJimsmxGGoFQAEoAD0STAsDoCcwA0ABqJsZAGopAApAAWhvji3OHGKaCYDWZkie22YIKCbq82xpYWndHQSg9maiAdS9FPjUaVJmWgf02RWp6XzzWjvPJDGsU/RBvblxbkG39ZMey9NoQWEmgBtXQM2zxofvz1debLYYkqrTpMxwANQ8yrn/IL/Wyw6LRZxHJfX9iqTMMPiySL5Yw+7b85VWtNnzNKlGJykzDFrQ7fJZ40o/tNliSKpOkzLDANDlqeoOAC2OCaN4T27cAC2u6rIlPfwA00z5IWEe1JcbN0DNymG3V+Q86NViIE9zA0BTM9M+oMeI5gaApmYGgPoqBT7dtqTMAFBfpcBn4JuUGQDqqxT41GlSZgCor1LgU6dJmQGgvkqBT50mZQaA+ioFPnWalBm2gDarpL5fkZQZBl8W6S/a2YaZmdTMsG1BiaWAue3EHrDy4uZ4MwAUgLqZAaA6MilAUzKT1CUe3bb0zKQFKGZmkjMDQH2VAp86TcoMAPVVCnzqNCkzANRXKfCp06TMtA9ouZ5Ii7/VmVSdJmWmfUCLx+QO56Zdf+0YA1+uZuIFtHwS3v334h2mDsNOBzdsxr1KAWihcj2R3TvPzRN0smrq4vpplBqYeQGUlHMIM+5Vii+LFCrXE5GPHeerjKDRSctMxC2okuqHli0ouRioVcqyTpMykwKg7n1QDHzTM9M6oOV6IodzU66jeNRpcmZaB9SsJyKbTsyDwkwQN7iTVFcMMANA3YohqTpNygwA9VUKfOo0KTNpAZrUzAzM+HLDBtCk5rZhxpsbAFpXDA2b8SEuZvDQnI5MCVCLtElRKZpBH7QFMxZJk6JSNIOlb1gqokOtl5sZTDM1b6ZezbegXM0A0PTqlJYlUzMANL06pWXJ1AwATa9OaVkyNQNA06tTWpZMzWCaqQUzFkmTolI0g4n6FsxYpE2KStFMNICGvaHWrBmLtElRKZqJBVCLtElRMGMy5GrGAtDdb5vn4iuL4BCLgW1Ph5YjzNglTYqyBlQ+aCyfjc8qi+CQi4HrWJGWJcxYKTCg2zdyNMtFcJIrBlqWMGOlBvqgermGchEc2WGxiWtS7A7IRTBTyAZQ+UB8Vl0ER4p2NjE9T2lZwoyVgreg+w+myp2iH0o7WKbFQMsSZqwUfhRfHRu5Acp1rEjLEWbskiZFWQNa8lkugkMtBrazbaQMYcYybVKUNaBy8lOMjeTSN3oRnBSLgZQhzFimTYqyBvQ4kQ6VazGQMoQZy7RJUa0AyranQ8sRZuySJkW1AyjXsSItS5ixEgBVQp0maQaAwowJpoVZCIAqoU6TNANAYcYE08IsNBQri9QL36/gqqFYWaReaHSSNOMX0EAPDoUvhuTN+HDTihl+gFLLgdYCDIuZNk83JzPpXOL912mgLMOlnKIZAAozLlmGSxmA6iiYccoyXMoAVEfBjFOW4VJ2BhSCmhAAhVgLgEKsBUAh1gKgEGsBUIi1ACjEWmRAN5IQzHAVAFWCGa4CoEoww1UAVAlmuAqAKsEMVwFQJZjhKgCqBDNcBUCVYIarAKgSzHAVG0CfdLvdc0sbq5dmaz8qPmPzsZMoWJ2ewJY3+TazelGY6J65n++q4u911POCV7NcAF08K0zNnFuyBNRTroVCAXoSW97kHdAXDr4foIM+7yAmgK69Ls/P9bvjq5e+3u2Ob6z+8htnZ9dudkX9rt/7frd7WbREl/W5PC5ffleU0GvflZ/0o0CAVmypGhX/V+ys3fpe2S55VChAzfGuXnpP1YCqqA1dSbm/i6ryEgT0ibgMKq1evCx3Vi8K7zNqc/3uefHqeWlb1ndxgTGf9JN/IEBLWyWgFTs3zy09Oeu/aQ0GqD7e3uIXlbR43vgr68db3mwAPW82TDXKP2u3ZmUTtH7v/ob8X7dG8tWyE+StKEIBWrFVtKCFnbWb42rTt7wDqvqg55bM8fYUv6yVokrkh/WOt7y5ALr6WtnUVGpTlkcPoDPd7tmIAK3a6gOocuSrl1LKO6B5C6qPtxfQm2r8lAOa14+3vLkAWu2sHd+CylO4vMRHAGjfPmgPoFG0oBVAX2hBb82ajyhax1O9xPcMd4vTUfdByxpVb756Px5Aq7Zk9YrdnvPtvL9edEXBANXH21v8upIqr6n68ZY3G0CrE4Y5oPkovrzEL3a7n31jfP2uGsXHAGjVljj4r9zqbUHfjGMUr/qg3XFzvGqkJ2tAuRKVdKYYGun6SRPQdtWKGTPs865QZkId70ABUCUAaiEA2p5ghqsAqBLMcBUAVYIZrgKgSjDDVQBUCWa4yhnQJhczDZcyzLhlGS5lK0B3b69k2f6DK9efq91yK7ViaDLLcCmnaGYgoNtXrq1kh3PT2bMbcrfcSq4YmswyXMouZui/MlOrYIAuX/1QtKD7D1d0S1rZQp06ZBkuZQczLr+DVKfAl/jdO8+z/Xfm5V6xJd0MimtD7A7oePn4US3PdgMkWabtFF0L6Pb1HMtyS6rJs8lGEf285egn7upn18FMyBY04E8hHteCAlAdTAvjCGjIPmhgQGPpgwJQrh3qwIAezk0Vo/gpxqN4ADqkgJrZT9WYcp4HBaBDCOgg0Q6WaTHQsgSgVgKgSgAUgALQI8G0MABqIwCqBEBdzdQLgCoBUAAKQI8E08IAqI0AqBIAdTVTLwCqBEABKGvF9G0mH4C2bcJeAb/NNEi0s4npeUrLEi2olXCJVwKgABSAHgmmhQFQGwFQJQDqaqZeAFQJgA7hF5YB6OBgWtjPvTyT5NdMpI98ANAAWQJQKwFQpXYA5XeJB6B5trQwCwHQIe2DPrsiNZ1vXsNDc45Z8gSUa83YtaDb+lGk5Wm0oO5ZAlArnQRQ8zD84fvzlRdpB8u0GJrMEoBa6SSAmmeN9x/k13rZo7aIa1QtHBA1S3xZ5ASyADRfTWT37flKK0o7m5iep01miRbUSicAdLt8GL7SD6UdLNNiaDJLAGqlEwC6PFXdcQKU62RGk1nyBJRrzRwBdLPTmdw8/bTnteKqLlvSww9cppno08GB7r0A0PyQ4pioXzj93xOTB49GegA1S9vdXpHzoFeLgTzpUFsF1PtVEYDapU2K6gfo3sSk+C/beunjrF6kQ6UDyq9OAaht2qSoVgCl93QY1mlSgEbSB92Ul/i9iQsWfOIrlGkBGskofqsjZMUnAAWglhqKbzOxrFMAaiUA2ladAlAr+RwkdZTCDZIAKFszMQBqMP3mY+tmtDGx/H4FvixiJe9fFtk6ciupv2hnE1pQpmbimGYygOISb3lQ6ZiJY6LeaCFgC5pQnSZlxgHQsDeh+w2STln1QYluaGEc6zQpMy6ABjXT9DRTQnWalhn6FR6AeioFADpQ5GmmpgDNJ0HDzoMmVadJmWEPKFrQ4TYDQLWb9koBgA5UFIDujPW5xJfriXj4Mdmk6jQpMzEAevDowsEj9Z3lqorH5A7npp1/jjupOk3JTBSjeInmwoUjtzrLJ+H3H67oH+hGnSZnJpaJ+slsc+TIrc5yPZHdO8/NE3QyzYykpL5fQTbjQ16dZA5JBjbT+1SnorP3ueNyPRH52HG+yggaHQczoVJ2MKMwIWXa6CBJdEKzhX63OlU/tGxBAaiTmVApu5gh88ljmkkBij6oJzOhUnYyw34Uv/db/dks1xM5nJvCKN6HmVApJw7oxDG3OPV6IrLpxDyoHzOhUk4bUH03frJ/M9pHRDftlQIAHRxMC2u4D7pp+1Q8AHUwEyrlIQBUNaNWX6gHoABUq/lRfMhnkgBowJRdzEQzzYQWNLyZUCk7mIlkop5xH9SHji+GJrO0skuKSh1QzqP4UCkPAvQX3AVA/QEq8LR7nNNJ4RbE8P9VEB+AUvP26sQqR/LXT3wAOiD5EtDftOp6FiKebrSwYCkPMDNULWhUo3gAqhMEoFYCoCFTBqBFMC0MgIZNGYAWwbQwABo2ZQBaBNPCAGjYlAFonmMsd5IAaJEgJurtQiMCNKk6TcpMbYb0gw1UTGEATemqmJSZ2gwdzqbatElRALRaDMmbqc8xoiXAj2j32+a5+MoiOMNQp0mZsQimhVkoMKDyQWP5bHxWWQRnKOo0KTMWwbQwCwUGdPtGjma5CM5Q1GlSZiyCaWEWaqAPqpdrKBfBkT3qfp9L6gtASZlpU95/J+kFyQfis+oiOFJ9zxUfddrGeZq8GYtgWpiFgreg+w+myp2iH9r3UFKq06TMWATTwiwUfhRfHRsB0CjNWATTwiwUGNCSz3IRnGPrNNBdheDF0DfBpABtr2JCAyonP8XYSC59oxfBAaBDCmgrZnAnaTjMWATTwiwEQN2LIXkzFsG0MAsBUPdiSN6MRTAtzEIA1L0YkjdjEUwLsxAAdS+G5M1YBNPCLARA3YsheTMWwbQwCwFQ92JI3oxFMC3MQi0B2k9Jfb8iKTP1Ofr+5aVK0k7RaEGHwkxthg4T8bVpk6LCANri/QraJWpYzNTJ5WDr5GSm6ceOw/V0Gq/TpMwAUKeDDZcyzBiF4xOAuqQMM25ZhksZgOoomHHKMlzKzoBCUBMCoBBrAVCItQAoxFoAFGItAAqxFgCFWAuAQqxFBnQjCcEMVwFQJZjhKgCqBDNcBUCVYIarAKgSzHAVAFWCGa4CoEoww1UAVAlmuAqAKsEMV/ECdPXiefHvzNnZ1UvyP69pD1SoOl29OC7/PWKl3A9iMoCZOh/lC74dMQP01V9Z2lj7NeUxEUDPzlpUrF8FAdTKRwBjzAC99Ob9jdVvyPPwvZvds7Nr8p+NjSdd9ad3z6uCAXrpR+eLhkX+LzycuW82zs7G04LW+CjtJN6CXvrR+MY//eBSfomfubzx5NzS2q3ZjUVRPmJP/Mn3vCocoLMz45WKXb87Lhz9s7YmXMQD6GAfpqaGANB3v7z+nXdzQCWLa6/fF//JN+Uf8YrZ86uAgK59bams2NW892LMRAToQB+mpoYA0L/+/X/59dUcUGl2/Z646F8U1xN5FenKv3rPrwICurF4uVKxry3pV42ZiACt9SFqaggAnf2r719ePdKCynfMld5I7HnNNyig6/d+0Kfl0WZiAnSQj+FpQWefnLm/eqQPKnGU//fueVVIQNUQWJ5ni2dV3030YwprMQE6yMfw9EHLi/v63WIUP1OM4uW1fSaqUbw8UlGjG4vd7ldu9Y5+ZXclJkAH+BiWUXxrghmuAqBKMMNVAFQJZrgKgCrBDFcBUCWY4SoAqgQzXOUMaJOLmYZLGWbcsgyXMgDVUTDjlGW4lK0A3b29kmX7D65cf652y63UiqHJLMOlnKKZgYBuX7m2kh3OTWfPbsjdcothMRB/pcLFDNcfxmgyy3ApWwC6fPVD0YLuP1zRLWlli18xUH/nx8EM/aeFQv1CGMuaCX6J373zPNt/Z17uFVuyhAbFNa/R5g+JnqUPQPmUf2AztYBuX8+xLLekmjyb6qVsEuIczFCzFJGfuKtfzu3UjAc3A8zQWlB+gEbVBwWg9mbqAY2jDxrVuAKA2pupB/RwbqoYxU/xHcUD0GEF1Mx+qsYU86AesgSgJzGDO0kA1M0MAA2aMgB1NQNAg6YMQF3NANCgKQPQ/JjI920BaMiUAag5JPJdBwAaNGUAag4JgJpsaWHBUgag5pDSAxQiywugvo+J/PUTH4AOSB4taPNmGLagGMW7FkOglAGoqxkAGjRlAOpqBoAGTRmAupoBoEFTBqCuZtIClH6/IlDKrZjhCCjuJJlSCEQoHvloywwADZoyAHU1A0CDpgxAXc20DuizK1LT+eY1p2eS0AdVge5Vij5oj7b1kx7L044tKEbxShwBjXoUb541Pnx/vvJiw8UQKGUA6mqGA6DmUc79B/m1vmYxCGiwOH5ZhK72vyySL9aw+/Z8pRVt+DwNlHIrZtCC2puxAXS7fNa40g9tuBgCpQxAXc0wAHR5qroDQB2zBKAnMWMBaHFVly3p4QeYZnLMkiegEU8zmZXDbq/IedCrxUCeWAqYqGcJaMQT9cep4WIIlDIAdTUDQIOmDEBdzSQFKPqgOtC9StEHDQMoRvFSHAGNeBQPQP1mCUBPYgaAAlA3MwA0aMoA1NUMAA2aMgB1NcMWUIgsjt9mwtI3judpoJRbMcOwBXWZB/Wg482kAyiteAGoOSQAarKlhVkIgOJOEgA9EkwL4wgo7iTl2RJLoV4AFKN4AHokmBYGQE9gBoACUDczANRSABSAAtAjwbQwAHoCMxaAlgvesP4xWQA6rIAWz3Eezk27/hw3fTKjPmlSVCtmOAIa7zRTuVTD/sMV/QPd5GJwmA6uT5sU1YoZhoBGPFFfLnize+e5ecRTuqmL66dRaqBN2oHSPT5DshkfNwc923VIsu0vi5QL3sjn4vNlcNCCwkwe2nILqqT6oWULSi0G9EFtkyZFtWOGD6DufVCM4i0Vk5m2AS0XvDmcm3IdxaNO7RSTmbYBNQveyKYT86BHgmlhForJTOuAHqOGi6FWMdVprWIyA0DtFFOd1iomMwDUTjENfOuTJkW1YwaA2immqcP6tElR7ZgBoHaKqU7r0yZFAVAAWs0QgOpQAGqlmLpt9UmTotoxwxVQbuLzw0EeFJOZtr8scpxop1tKLSjMKHFtQRsuhlrFVKe1iskMALVTTHVaq5jMAFA7xVSntYrJDAC1U0x1WquYzCQFKGZmLJMmRbVjJiVAMbdtmzYpqh0zALSIdNXxxdCsGYu0SVEtARq0ZqIB1P00ZfSkbn3apKgUzVgAuvtt89hxZY0RYjFgrQPbpElRKZqxeC7+nXn16HFWWWOEXAxYLcZOMY3iaxUY0O0bOZrlGiMA1MlMvQDoyfqg+mn4co0R2WGxifMnjr/cElARHWq93MzYACqfN86qa4xI0c4mtKBWQgt6khZ0/8FUuVP0Q2kHC0CtBEBPNIqvjo0AqLuZegFQe0BLPss1RsjFgGkmy6RJUSmaqQdUTn6KsZFcWUSvMeJQDJiot02bFJWiGdxJSq9OSRlyNQNA06tTUoZczcTydTuGgLLtttFyZGomli8scwSU68CXliVTMwA0vTqlZcnUDABNr05pWTI1A0DTq1NalkzNAND06pSWJVMzsSx9g28zxavw32bqq77nSpjHUzylfMIWNFCOVvLfgsZqhh+g/e2ESrkVMxa1Q4sKC2grZmLpg4ZKGWbcsgyXMgDVUTDjlGW4lAGojoIZpyzDpQxAdRTMOGUZLmVnQGkKN3/SwswMzDSQMgDlmCXMFAKgHLOEmUIAlGOWMFMoklud0LAKgEKsBUAh1gKgEGsBUIi1AgIqV77N176tvHp7pe+nLZNUi0EWq+iKxGrSc8quJ2eYGZxkIDMhAZVHYNa+9ZXk27/7PNv/4e1KMdgchI+cYWZwkqHMhAZUrte4/0CuHL5752/kWStfFS989Yfz5oWTJflH89nuH4sk9MLk5jztTc+8pfZ01jATr5ngLeid59nyVPbshji6Kbn+mHxVvLB9dd68cLIk/206+58Pb6+ohclVGbyQXv5WmR3MRGwmeB9UH9f+Q3W8+rDFjjx/zQsnSvL2T37v8IOf6CCdZt/0erKDmZjNBL/Ez02rpcOvzpfHJc9dajH8+9/+75+ooGX5iyP908vf8lqnMNOOmdCAZsvT8jQyu+7n6cq//t2UTOJB3s15Ib3yLe91CjPNmwkNqLyKLBd9jt2engmpGHSgin17vl965Vve6xRmmjfTxDyouJJcna+cp/KFX6WepyaJZ1eufPUPp/umV7wl9w7nPA18YaYdM23dSfLVGIRKr9XMYaZUG4AezlXXEueXXquZw0yvcC8eYi0ACrEWAIVYC4BCrAVAIdYCoM7a7HQ6px6f/OOfflS+WN2GqgKgjjp4dPqppG7S8vObL32cZVvi4zufK6GubkM9AqCOWpB8Cu70n1odPJo0UQDUSgDUTXsTk8X2zpi4el8QtP252JiUMHY6I5n+K9rNnc//Weelf3x0ofzwBROit83HoB4BUDdV2j7FqriC74yJ1lT8PXg0ol6Tf2ULuzMmad2SLOaRRYjYzj/Wjg+2AqBu2vl80eb9n2RLoLYzNqn/Gna3ZLMoUFSvZ3qUNKIBLULEdv6xxi3wFgB1U0/vcUsN0NVL4p8tc72WQKoLebWxzfugZUj+saYdMBcAdVPe5O198/HexKnHRctZBdRcto+MivQlvgzB1b2vAKijDFeiI7klt7bKFrS4xJtJ0vx1s60u65WQrRPMpQ6RAKijynlQSdjOWAmoHPXo/8UncnCzBclhPn7KQ/RYSn+sbUPMBECdtZDfGhIbp/5CDIbylrI6zaQv5fLjm3lPc0G8aULUtvkY1CMACrEWAIVYC4BCrAVAIdYCoBBrAVCItQAoxFoAFGItAAqxFgCFWOv/AfApaPz1sL6lAAAAAElFTkSuQmCC" /><!-- --></p>
+</div>
+<div id="logistic-regression" class="section level2">
+<h2>Logistic Regression</h2>
+<ul>
+<li>Following the established discipline of dividing a portion of the dataset into a training set and the remainder into a test set.</li>
+<li>The training set will be used to build the model and the test set will be used to validate the model.</li>
+<li>The training set will consist of 20% of the data and the test set will consist of the remaining 80%.</li>
+<li>A set.seed is used at the beginning of the test and training division in order to get reproducible results.</li>
+</ul>
 <pre class="r"><code>set.seed(12345) #to get repeatable data
 
-wdbc.train &lt;- sample_frac(ed.small, 0.7, replace = FALSE)
+wdbc.train &lt;- sample_frac(ed.small, 0.2, replace = FALSE)
 
 train.index &lt;- as.numeric(rownames(wdbc.train))
 wdbc.test &lt;- ed.small[-train.index,]
@@ -411,34 +420,42 @@ summary(wdbc.glm.fit)</code></pre>
 ##     data = wdbc.train)
 ## 
 ## Deviance Residuals: 
-##     Min       1Q   Median       3Q      Max  
-## -3.4793  -0.1275  -0.0613   0.0285   2.3439  
+##      Min        1Q    Median        3Q       Max  
+## -1.52446  -0.05968  -0.01665   0.00444   2.53104  
 ## 
 ## Coefficients:
-##              Estimate Std. Error z value Pr(&gt;|z|)    
-## (Intercept) -10.01551    0.92630 -10.812  &lt; 2e-16 ***
-## Clump         0.61590    0.11491   5.360 8.32e-08 ***
-## Cell_Size    -0.09790    0.15511  -0.631 0.527938    
-## Cell_Shape    0.33844    0.16877   2.005 0.044931 *  
-## Adhesion      0.28207    0.08946   3.153 0.001617 ** 
-## Epithelial   -0.02268    0.12801  -0.177 0.859380    
-## Nuclei        0.41127    0.07459   5.514 3.51e-08 ***
-## Chromatin     0.48556    0.12646   3.840 0.000123 ***
-## Nucleoli      0.16994    0.08750   1.942 0.052111 .  
-## Mitoses       0.60983    0.25228   2.417 0.015635 *  
+##             Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept) -14.2120     3.2378  -4.389 1.14e-05 ***
+## Clump         0.8169     0.2999   2.724  0.00646 ** 
+## Cell_Size    -0.9366     0.3984  -2.351  0.01874 *  
+## Cell_Shape    0.9847     0.4535   2.171  0.02989 *  
+## Adhesion      0.5168     0.1825   2.831  0.00464 ** 
+## Epithelial   -0.5541     0.2756  -2.010  0.04440 *  
+## Nuclei        0.5243     0.1789   2.930  0.00338 ** 
+## Chromatin     0.8176     0.3005   2.720  0.00652 ** 
+## Nucleoli      0.8661     0.2727   3.177  0.00149 ** 
+## Mitoses       1.6154     0.9805   1.647  0.09946 .  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## (Dispersion parameter for binomial family taken to be 1)
 ## 
-##     Null deviance: 1270.6  on 978  degrees of freedom
-## Residual deviance:  170.9  on 969  degrees of freedom
-## AIC: 190.9
+##     Null deviance: 373.40  on 279  degrees of freedom
+## Residual deviance:  40.14  on 270  degrees of freedom
+## AIC: 60.14
 ## 
-## Number of Fisher Scoring iterations: 8</code></pre>
+## Number of Fisher Scoring iterations: 9</code></pre>
 <p>Assessing Model Fit:</p>
-<p>The following attributes are NOT statistically significant: * Cell_Size * Epithelial</p>
-<p>The following attributes ARE statistically significant: * Clump * Nuclei * Chromatin * Adhesion * Cell_Shape * Mitoses</p>
+<p>The following attributes are NOT statistically significant:<br />
+* Cell_Size<br />
+* Epithelial</p>
+<p>The following attributes ARE statistically significant:<br />
+* Clump<br />
+* Nuclei<br />
+* Chromatin<br />
+* Adhesion<br />
+* Cell_Shape<br />
+* Mitoses</p>
 <ul>
 <li>In this logit model, the response valirable (CancerState) is log odds, a unit increase in Clump increases the odds by 0.6, a unit increase in Nuclei increases the odds by 0.4, and a unit increase in Chromatin increases the odds by 0.5.</li>
 <li>The null deviance (the deviance just for the mean) is 1271 and the residual deviance (the deviance for the model) is 171.</li>
@@ -457,16 +474,16 @@ summary(wdbc.glm.fit)</code></pre>
 ## 
 ## 
 ##            Df Deviance Resid. Df Resid. Dev  Pr(&gt;Chi)    
-## NULL                         978    1270.59              
-## Clump       1   605.87       977     664.72 &lt; 2.2e-16 ***
-## Cell_Size   1   332.16       976     332.56 &lt; 2.2e-16 ***
-## Cell_Shape  1    36.24       975     296.32 1.749e-09 ***
-## Adhesion    1    34.33       974     261.99 4.647e-09 ***
-## Epithelial  1     5.86       973     256.13  0.015493 *  
-## Nuclei      1    54.84       972     201.29 1.304e-13 ***
-## Chromatin   1    18.07       971     183.22 2.132e-05 ***
-## Nucleoli    1     4.24       970     178.98  0.039418 *  
-## Mitoses     1     8.08       969     170.90  0.004474 ** 
+## NULL                         279     373.40              
+## Clump       1  151.984       278     221.42 &lt; 2.2e-16 ***
+## Cell_Size   1  109.367       277     112.05 &lt; 2.2e-16 ***
+## Cell_Shape  1   17.027       276      95.03 3.686e-05 ***
+## Adhesion    1    9.118       275      85.91  0.002531 ** 
+## Epithelial  1    0.253       274      85.65  0.614766    
+## Nuclei      1   15.388       273      70.27 8.754e-05 ***
+## Chromatin   1    8.767       272      61.50  0.003068 ** 
+## Nucleoli    1   16.426       271      45.07 5.060e-05 ***
+## Mitoses     1    4.934       270      40.14  0.026326 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <p>Assessing Table of Deviance (ToD):</p>
@@ -475,20 +492,26 @@ summary(wdbc.glm.fit)</code></pre>
 <p>Eventhough there is not an exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:</p>
 <pre class="r"><code>pr2_mc &lt;- pR2(wdbc.glm.fit)
 pr2_mc[[4]]</code></pre>
-<pre><code>## [1] 0.8654986</code></pre>
-<p>Assessing the predictive ability of the model</p>
-<pre class="r"><code>glm.probs &lt;- predict(wdbc.glm.fit,type = &quot;response&quot;)
+<pre><code>## [1] 0.8925029</code></pre>
+<p>Assessing the predictive ability of the logistic regression model by predicting from test dataset using against the training dataset: - The predict function provides probabilities of classification - Using a probabilities from the predict function, the ifelse will use the threshold of 0.5 to assign classification of “Malignant”, else it will assign a classification of “Benign” - A confusion matrix will provide how well the model is doing</p>
+<pre class="r"><code>glm.probs &lt;- predict(wdbc.glm.fit, wdbc.test, type = &quot;response&quot;)
 glm.probs[1:5]</code></pre>
-<pre><code>##        1008        1224        1063        1237         637 
-## 0.998342115 0.003956658 0.043678314 0.030102178 0.999781209</code></pre>
+<pre><code>##           1           3           4           5           6 
+## 0.005420239 0.001793804 0.896343650 0.006723025 0.999998391</code></pre>
 <pre class="r"><code>glm.pred &lt;- ifelse(glm.probs &gt; 0.5, &quot;Malignant &quot;,&quot;Benign&quot;)
 
-attach(wdbc.train)
+# We are attempting to predict CancerState variabel in the dataset, this is used to evaluate what is predicted in the model to the actual state
+attach(wdbc.test)
 table(glm.pred,CancerState)</code></pre>
 <pre><code>##             CancerState
 ## glm.pred     Benign Malignant
-##   Benign        616        17
-##   Malignant      18       328</code></pre>
+##   Benign        726        30
+##   Malignant      18       344</code></pre>
+<ul>
+<li>The confusion matrix operates on the diagonial where the model predicted <strong>CORRECTLY</strong>, starting at the top left (726) and the bottom right (344).</li>
+<li>The off diagonial is where the model predicted <strong>INCORRECTLY</strong>, starting at the top left (726) and the bottom right (344).</li>
+<li>Out of 1118 records, the model had 1070 accurate predictions for an accuracy rate of 96%</li>
+</ul>
 </div>
 </div>
 <div id="bruces-work-ends-here" class="section level1">
@@ -509,7 +532,7 @@ table(glm.pred,CancerState)</code></pre>
 <div id="proportions" class="section level2">
 <h2>Proportions</h2>
 <pre class="r"><code>attach(entire.dataset)</code></pre>
-<pre><code>## The following objects are masked from wdbc.train:
+<pre><code>## The following objects are masked from wdbc.test:
 ## 
 ##     Adhesion, CancerState, Cell_Shape, Cell_Size, Chromatin,
 ##     Clump, Epithelial, Mitoses, Nuclei, Nucleoli</code></pre>

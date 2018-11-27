@@ -257,10 +257,15 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
   theme(legend.position="none")
 ```
 
+## Logistic Regression
+- Following the established discipline of dividing a portion of the dataset into a training set and the remainder into a test set.
+- The training set will be used to build the model and the test set will be used to validate the model.
+- The training set will consist of 20% of the data and the test set will consist of the remaining 80%.
+- A set.seed is used at the beginning of the test and training division in order to get reproducible results.
 ```{r LogisticRegression}
 set.seed(12345) #to get repeatable data
 
-wdbc.train <- sample_frac(ed.small, 0.7, replace = FALSE)
+wdbc.train <- sample_frac(ed.small, 0.2, replace = FALSE)
 
 train.index <- as.numeric(rownames(wdbc.train))
 wdbc.test <- ed.small[-train.index,]
@@ -272,19 +277,20 @@ wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = binomial(link =
 
 summary(wdbc.glm.fit)
 ```
+
 Assessing Model Fit:
 
-The following attributes are NOT statistically significant:
-* Cell_Size
-* Epithelial
+The following attributes are NOT statistically significant:  
+* Cell_Size  
+* Epithelial  
   
-The following attributes ARE statistically significant:
-* Clump
-* Nuclei
-* Chromatin
-* Adhesion
-* Cell_Shape
-* Mitoses
+The following attributes ARE statistically significant:  
+* Clump  
+* Nuclei  
+* Chromatin  
+* Adhesion  
+* Cell_Shape  
+* Mitoses  
   
 - In this logit model, the response valirable (CancerState) is log odds, a unit increase in Clump increases the odds by 0.6, a unit increase in Nuclei increases the odds by 0.4, and a unit increase in Chromatin increases the odds by 0.5.
 - The null deviance (the deviance just for the mean) is 1271 and the residual deviance (the deviance for the model) is 171.
@@ -308,16 +314,23 @@ pr2_mc <- pR2(wdbc.glm.fit)
 pr2_mc[[4]]
 ```
 
-Assessing the predictive ability of the model
-```{r PredictTarining}
-glm.probs <- predict(wdbc.glm.fit,type = "response")
+Assessing the predictive ability of the logistic regression model by predicting from test dataset using against the training dataset:
+- The predict function provides probabilities of classification
+- Using a probabilities from the predict function, the ifelse will use the threshold of 0.5 to assign classification of "Malignant ", else it will assign a classification of "Benign"
+- A confusion matrix will provide how well the model is doing
+```{r PredictTest}
+glm.probs <- predict(wdbc.glm.fit, wdbc.test, type = "response")
 glm.probs[1:5]
 glm.pred <- ifelse(glm.probs > 0.5, "Malignant ","Benign")
 
-attach(wdbc.train)
+# We are attempting to predict CancerState variabel in the dataset, this is used to evaluate what is predicted in the model to the actual state
+attach(wdbc.test)
 table(glm.pred,CancerState)
-```
 
+```
+- The confusion matrix operates on the diagonial where the model predicted **CORRECTLY**, starting at the top left (726) and the bottom right (344).
+- The off diagonial is where the model predicted **INCORRECTLY**, starting at the top left (726) and the bottom right (344).
+- Out of 1118 records, the model had 1070 accurate predictions for an accuracy rate of 96%
 
 # Bruce's Work Ends Here
 
