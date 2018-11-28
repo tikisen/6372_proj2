@@ -263,18 +263,28 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
 - The training set will consist of 20% of the data and the test set will consist of the remaining 80%.
 - A set.seed is used at the beginning of the test and training division in order to get reproducible results.
 ```{r LogisticRegression}
+wdbc.data.2 <-  wdbc.data %>% mutate(Class2 = case_when(Class == 2 ~ 0,
+                                                        Class == 4 ~ 1)) %>%
+  select(-Class) %>% select(Clump, Cell_Size, Cell_Shape, Adhesion, Epithelial, Nuclei,
+                            Chromatin, Nucleoli, Mitoses, Class = Class2)
+
+wdbc.data.2$Class <- as.factor(wdbc.data.2$Class)
+
 set.seed(12345) #to get repeatable data
 
-wdbc.train <- sample_frac(ed.small, 0.2, replace = FALSE)
+#wdbc.train <- sample_frac(ed.small, 0.2, replace = FALSE)
+wdbc.train <- sample_frac(wdbc.data.2, 0.2, replace = FALSE)
 
 train.index <- as.numeric(rownames(wdbc.train))
-wdbc.test <- ed.small[-train.index,]
+#wdbc.test <- ed.small[-train.index,]
+wdbc.test <- wdbc.data.2[-train.index,]
 
 rm(train.index)
 
 # MODEL FITTING
-wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = binomial(link = "logit"))
-
+# wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = binomial(link = "logit"))
+# wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = "binomial")
+wdbc.glm.fit <- glm(Class ~ ., data = wdbc.train, family = "binomial")
 summary(wdbc.glm.fit)
 ```
 
@@ -320,7 +330,31 @@ Assessing the predictive ability of the logistic regression model by predicting 
 - A confusion matrix will provide how well the model is doing
 ```{r PredictTest}
 glm.probs <- predict(wdbc.glm.fit, wdbc.test, type = "response")
-glm.probs[1:5]
+
+prediction(glm.probs, wdbc.test$Class) -> pred_log
+
+performance(pred_log, "acc") -> acc
+plot(acc) 
+plot(glm.probs)
+
+# MAX Accuracy ~ 0.1
+# Confusion Matrix Using Max Accuracy
+x <- table(wdbc.test$Class,glm.probs > 0.1)
+x
+
+# Accuracy when using Max Accuracy Cutoff is 96%
+(x[1] + x[4])/(x[1] + x[2] + x[3] + x[4])
+
+# TP and FP Rates When Using Max Accuracy Cutoff
+# TP Rate: 98%
+x[4]/(x[4] + x[2])
+# FP Rate: 5%
+x[3]/(x[3] + x[1])
+
+# Build ROC to get good tradoff between Accuracy and TP/FP Rate
+performance(pred_log, "tpr", "fpr") -> roc_curve
+plot(roc_curve)
+
 glm.pred <- ifelse(glm.probs > 0.5, "Malignant ","Benign")
 
 # We are attempting to predict CancerState variabel in the dataset, this is used to evaluate what is predicted in the model to the actual state

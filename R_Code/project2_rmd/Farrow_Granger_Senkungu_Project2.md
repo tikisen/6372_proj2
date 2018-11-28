@@ -488,7 +488,7 @@ glm.probs[1:5]
 ```
 
 ```r
-glm.pred <- ifelse(glm.probs > 0.5, "Malignant ","Benign")
+glm.pred <- ifelse(glm.probs > 0.36, "Malignant ","Benign")
 
 # We are attempting to predict CancerState variabel in the dataset, this is used to evaluate what is predicted in the model to the actual state
 attach(wdbc.test)
@@ -498,8 +498,8 @@ table(glm.pred,CancerState)
 ```
 ##             CancerState
 ## glm.pred     Benign Malignant
-##   Benign        726        30
-##   Malignant      18       344
+##   Benign        724        20
+##   Malignant      20       354
 ```
 - The confusion matrix operates on the diagonial where the model predicted **CORRECTLY**, starting at the top left (726) and the bottom right (344).
 - The off diagonial is where the model predicted **INCORRECTLY**, starting at the top left (726) and the bottom right (344).

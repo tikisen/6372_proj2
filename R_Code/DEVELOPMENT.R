@@ -134,4 +134,46 @@ wdbc.data %>% summary()
 
 #  proportion of classes 
 table(wdbc.data$Class)
-                            
+
+# Logistic Regression - ROC Curve ####
+# https://www.youtube.com/watch?v=G_pvQYUm8Ik
+# STEP: 
+#   1) Divide data into 
+#     1a) training set        => wbdc.train     => train
+#     1b) test set            => wbdc.test      => test
+#
+#   2) Build a logistic model using training set
+#     2a) logistic model      => wdbc.glm.fit   => mod_log 
+#         wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = "binomial")
+#         wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family =  binomial(link = "logit"))
+#
+#   3) Predict the values, based off of training data set, using test data set
+#     3a) predictions (probs) => glm.probs      => results_log
+#         glm.probs <- predict(wdbc.glm.fit, wdbc.test, type = "response")
+#
+#   4) Can't use arbitrary value as the threshold, instead we use a performance threshold using the ROC
+#     curve.  This is a blend of the accuracy and TP/TN vs TN/FN using library(ROCR)
+#     4a) Prediction          => pred_log       => pred_log
+          prediction(glm.probs, wdbc.test$Class) -> pred_log
+#     4b) Performance (Performance metric: Accuracy vs Cutoff)
+          performance(pred_log, "acc") -> acc
+          plot(acc)
+#         max acc is around 0.1, and when we build a confusion matrix using MAX ACCuracy of .09
+#         table(wdbc.test$CancerState, glm.probs>0.9)
+#                       FALSE TRUE
+#           Benign      734   10
+#           Malignant    58  316
+#         Accuracy: (734+316)/(734+316+58+10) => 0.9391771
+#         TP/FP Rates:
+#           TP: 316 / (58+316)  => 0.8449198
+#           FP: 10 / (10 + 734) => 0.01344086
+#         To get a good balance of TP to FP:
+            performance(pred_log, "tpr", "fpr") -> roc_curve
+            plot(roc_curve)
+
+wdbc.data.2 <-  wdbc.data %>% mutate(Class2 = case_when(Class == 2 ~ 0,
+                                                        Class == 4 ~ 1)) %>%
+  select(-Class) %>% select(Clump, Cell_Size, Cell_Shape, Adhesion, Epithelial, Nuclei,
+                            Chromatin, Nucleoli, Mitoses, Class = Class2)
+
+wdbc.data.2$Class <- as.factor(wdbc.data.2$Class)

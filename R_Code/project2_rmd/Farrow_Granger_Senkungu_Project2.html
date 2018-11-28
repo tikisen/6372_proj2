@@ -498,15 +498,15 @@ pr2_mc[[4]]</code></pre>
 glm.probs[1:5]</code></pre>
 <pre><code>##           1           3           4           5           6 
 ## 0.005420239 0.001793804 0.896343650 0.006723025 0.999998391</code></pre>
-<pre class="r"><code>glm.pred &lt;- ifelse(glm.probs &gt; 0.5, &quot;Malignant &quot;,&quot;Benign&quot;)
+<pre class="r"><code>glm.pred &lt;- ifelse(glm.probs &gt; 0.36, &quot;Malignant &quot;,&quot;Benign&quot;)
 
 # We are attempting to predict CancerState variabel in the dataset, this is used to evaluate what is predicted in the model to the actual state
 attach(wdbc.test)
 table(glm.pred,CancerState)</code></pre>
 <pre><code>##             CancerState
 ## glm.pred     Benign Malignant
-##   Benign        726        30
-##   Malignant      18       344</code></pre>
+##   Benign        724        20
+##   Malignant      20       354</code></pre>
 <ul>
 <li>The confusion matrix operates on the diagonial where the model predicted <strong>CORRECTLY</strong>, starting at the top left (726) and the bottom right (344).</li>
 <li>The off diagonial is where the model predicted <strong>INCORRECTLY</strong>, starting at the top left (726) and the bottom right (344).</li>
