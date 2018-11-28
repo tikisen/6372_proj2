@@ -33,10 +33,6 @@ wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/mast
 wdbc_data <- wdbc_data %>% filter(ID !="Sample_code_number")
 ```
 
-```
-## Warning: package 'bindrcpp' was built under R version 3.4.4
-```
-
 # Bruce's Work Starts Here
 
 ## Check for missing values
@@ -356,26 +352,35 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
 - A set.seed is used at the beginning of the test and training division in order to get reproducible results.
 
 ```r
+wdbc.data.2 <-  wdbc.data %>% mutate(Class2 = case_when(Class == 2 ~ 0,
+                                                        Class == 4 ~ 1)) %>%
+ dplyr::select(Clump, Cell_Size, Cell_Shape, Adhesion, Epithelial, Nuclei,
+               Chromatin, Nucleoli, Mitoses, Class = Class2)
+
+wdbc.data.2$Class <- as.factor(wdbc.data.2$Class)
+
 set.seed(12345) #to get repeatable data
 
-wdbc.train <- sample_frac(ed.small, 0.2, replace = FALSE)
+#wdbc.train <- sample_frac(ed.small, 0.2, replace = FALSE)
+wdbc.train <- sample_frac(wdbc.data.2, 0.2, replace = FALSE)
 
 train.index <- as.numeric(rownames(wdbc.train))
-wdbc.test <- ed.small[-train.index,]
+#wdbc.test <- ed.small[-train.index,]
+wdbc.test <- wdbc.data.2[-train.index,]
 
 rm(train.index)
 
 # MODEL FITTING
-wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = binomial(link = "logit"))
-
+# wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = binomial(link = "logit"))
+# wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = "binomial")
+wdbc.glm.fit <- glm(Class ~ ., data = wdbc.train, family = "binomial")
 summary(wdbc.glm.fit)
 ```
 
 ```
 ## 
 ## Call:
-## glm(formula = CancerState ~ ., family = binomial(link = "logit"), 
-##     data = wdbc.train)
+## glm(formula = Class ~ ., family = "binomial", data = wdbc.train)
 ## 
 ## Deviance Residuals: 
 ##      Min        1Q    Median        3Q       Max  
@@ -435,7 +440,7 @@ anova(wdbc.glm.fit, test = "Chisq")
 ## 
 ## Model: binomial, link: logit
 ## 
-## Response: CancerState
+## Response: Class
 ## 
 ## Terms added sequentially (first to last)
 ## 
@@ -479,31 +484,88 @@ Assessing the predictive ability of the logistic regression model by predicting 
 
 ```r
 glm.probs <- predict(wdbc.glm.fit, wdbc.test, type = "response")
-glm.probs[1:5]
+
+prediction(glm.probs, wdbc.test$Class) -> pred_log
+
+performance(pred_log, "acc") -> acc
+plot(acc) 
+```
+
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/PredictTest-1.png)<!-- -->
+
+```r
+plot(glm.probs)
+```
+
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/PredictTest-2.png)<!-- -->
+
+```r
+# MAX Accuracy ~ 0.1
+# Confusion Matrix Using Max Accuracy
+x <- table(wdbc.test$Class,glm.probs > 0.6)
+x
 ```
 
 ```
-##           1           3           4           5           6 
-## 0.005420239 0.001793804 0.896343650 0.006723025 0.999998391
+##    
+##     FALSE TRUE
+##   0   726   18
+##   1    39  335
 ```
 
 ```r
-glm.pred <- ifelse(glm.probs > 0.36, "Malignant ","Benign")
+# Accuracy when using Max Accuracy Cutoff is:
+(x[1] + x[4])/(x[1] + x[2] + x[3] + x[4])
+```
+
+```
+## [1] 0.9490161
+```
+
+```r
+# TP and FP Rates When Using Max Accuracy Cutoff when cutoff:
+# TP Rate:
+x[4]/(x[4] + x[2])
+```
+
+```
+## [1] 0.8957219
+```
+
+```r
+# FP Rate:
+x[3]/(x[3] + x[1])
+```
+
+```
+## [1] 0.02419355
+```
+
+```r
+# Build ROC to get good tradoff between Accuracy and TP/FP Rate
+performance(pred_log, "tpr", "fpr") -> roc_curve
+plot(roc_curve, colorize=T)
+```
+
+![](Farrow_Granger_Senkungu_Project2_files/figure-html/PredictTest-3.png)<!-- -->
+
+```r
+glm.pred <- ifelse(glm.probs > 0.39, "Malignant ","Benign")
 
 # We are attempting to predict CancerState variabel in the dataset, this is used to evaluate what is predicted in the model to the actual state
 attach(wdbc.test)
-table(glm.pred,CancerState)
+table(glm.pred,Class)
 ```
 
 ```
-##             CancerState
-## glm.pred     Benign Malignant
-##   Benign        724        20
-##   Malignant      20       354
+##             Class
+## glm.pred       0   1
+##   Benign     724  24
+##   Malignant   20 350
 ```
-- The confusion matrix operates on the diagonial where the model predicted **CORRECTLY**, starting at the top left (726) and the bottom right (344).
-- The off diagonial is where the model predicted **INCORRECTLY**, starting at the top left (726) and the bottom right (344).
-- Out of 1118 records, the model had 1070 accurate predictions for an accuracy rate of 96%
+- The confusion matrix operates on the diagonial where the model predicted **CORRECTLY**, starting at the top left (726) and the bottom right (335).
+- The off diagonial is where the model predicted **INCORRECTLY**, starting at the bottom left (39) and the top right (18).
+- Out of 1118 records, the model had 1070 accurate predictions for an accuracy rate of 95%
 
 # Bruce's Work Ends Here
 
@@ -530,8 +592,8 @@ attach(entire.dataset)
 ```
 ## The following objects are masked from wdbc.test:
 ## 
-##     Adhesion, CancerState, Cell_Shape, Cell_Size, Chromatin,
-##     Clump, Epithelial, Mitoses, Nuclei, Nucleoli
+##     Adhesion, Cell_Shape, Cell_Size, Chromatin, Class, Clump,
+##     Epithelial, Mitoses, Nuclei, Nucleoli
 ```
 
 ```r

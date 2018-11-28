@@ -265,8 +265,8 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
 ```{r LogisticRegression}
 wdbc.data.2 <-  wdbc.data %>% mutate(Class2 = case_when(Class == 2 ~ 0,
                                                         Class == 4 ~ 1)) %>%
-  select(-Class) %>% select(Clump, Cell_Size, Cell_Shape, Adhesion, Epithelial, Nuclei,
-                            Chromatin, Nucleoli, Mitoses, Class = Class2)
+ dplyr::select(Clump, Cell_Size, Cell_Shape, Adhesion, Epithelial, Nuclei,
+               Chromatin, Nucleoli, Mitoses, Class = Class2)
 
 wdbc.data.2$Class <- as.factor(wdbc.data.2$Class)
 
@@ -339,32 +339,32 @@ plot(glm.probs)
 
 # MAX Accuracy ~ 0.1
 # Confusion Matrix Using Max Accuracy
-x <- table(wdbc.test$Class,glm.probs > 0.1)
+x <- table(wdbc.test$Class,glm.probs > 0.6)
 x
 
-# Accuracy when using Max Accuracy Cutoff is 96%
+# Accuracy when using Max Accuracy Cutoff is:
 (x[1] + x[4])/(x[1] + x[2] + x[3] + x[4])
 
-# TP and FP Rates When Using Max Accuracy Cutoff
-# TP Rate: 98%
+# TP and FP Rates When Using Max Accuracy Cutoff when cutoff:
+# TP Rate:
 x[4]/(x[4] + x[2])
-# FP Rate: 5%
+# FP Rate:
 x[3]/(x[3] + x[1])
 
 # Build ROC to get good tradoff between Accuracy and TP/FP Rate
 performance(pred_log, "tpr", "fpr") -> roc_curve
-plot(roc_curve)
+plot(roc_curve, colorize=T)
 
-glm.pred <- ifelse(glm.probs > 0.5, "Malignant ","Benign")
+glm.pred <- ifelse(glm.probs > 0.39, "Malignant ","Benign")
 
 # We are attempting to predict CancerState variabel in the dataset, this is used to evaluate what is predicted in the model to the actual state
 attach(wdbc.test)
-table(glm.pred,CancerState)
+table(glm.pred,Class)
 
 ```
-- The confusion matrix operates on the diagonial where the model predicted **CORRECTLY**, starting at the top left (726) and the bottom right (344).
-- The off diagonial is where the model predicted **INCORRECTLY**, starting at the top left (726) and the bottom right (344).
-- Out of 1118 records, the model had 1070 accurate predictions for an accuracy rate of 96%
+- The confusion matrix operates on the diagonial where the model predicted **CORRECTLY**, starting at the top left (726) and the bottom right (335).
+- The off diagonial is where the model predicted **INCORRECTLY**, starting at the bottom left (39) and the top right (18).
+- Out of 1118 records, the model had 1070 accurate predictions for an accuracy rate of 95%
 
 # Bruce's Work Ends Here
 
