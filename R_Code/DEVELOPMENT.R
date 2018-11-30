@@ -177,3 +177,27 @@ wdbc.data.2 <-  wdbc.data %>% mutate(Class2 = case_when(Class == 2 ~ 0,
                             Chromatin, Nucleoli, Mitoses, Class = Class2)
 
 wdbc.data.2$Class <- as.factor(wdbc.data.2$Class)
+
+# Model Selection Approaches
+inputData <- read.csv("http://rstatistics.net/wp-content/uploads/2015/09/ozone2.csv", stringsAsFactors=F)
+response_df <- inputData['ozone_reading']  # Y variable
+predictors_df <- inputData[, !names(inputData) %in% "ozone_reading" ]  # X variables
+
+lmMod <- lm(ozone_reading ~ . , data = inputData)
+selectedMod <- step(lmMod)
+
+all_vifs <- car::vif(selectedMod)
+print(all_vifs)
+
+# ---------------
+
+wdbc.data.2 <- wdbc.data %>% select(-ID)
+
+lmMod_2 <- lm(Class ~ . , data = wdbc.data.2)
+selectedMod_2 <- step(lmMod_2, direction = "forward")
+
+all_vifs_2 <- car::vif(selectedMod_2)
+print(all_vifs_2)
+
+forward <-data.frame(names(all_vifs_2))
+

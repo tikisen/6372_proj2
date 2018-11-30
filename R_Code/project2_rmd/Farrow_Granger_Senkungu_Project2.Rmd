@@ -257,6 +257,33 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
   theme(legend.position="none")
 ```
 
+## MODEL SELECTION
+- In stepwise regression, the full model is passed to a *step* function. The stepwise function iteratively searches the full scope of variables.
+- The iteration will be performed in a forward and backwards directions.
+- In a backward selection, the *step* function performs multiple iteractions by droping one independent variable at a time.  
+- In a forward selection, the *step* function performs multiple iteractions by adding one independent variable at a time.
+- In each (forward and backward) iteration, multiple models are built and the AIC of the models is computed and the model that yields the lowest AIC is retained for the next iteration.  
+
+```{r StepwiseForwardSelection}
+wdbc.data.2 <- wdbc.data %>% dplyr::select(-ID)
+
+lmMod <- lm(Class ~ . , data = wdbc.data.2)
+selectedMod <- step(lmMod, direction = "forward")
+
+all.vifs <- car::vif(selectedMod)
+print(all.vifs)
+```
+
+- When using a forward selection, all nine variables are retained in the model selection.
+
+```{r StepwiseBackwardSelection}
+selectedMod <- step(lmMod, direction = "backward")
+all.vifs <- car::vif(selectedMod)
+print(all.vifs)
+```
+
+- When using a backward selection, eight variables are retained in the model selection, only Mitoses is omitted from the model selection.
+
 ## Logistic Regression
 - Following the established discipline of dividing a portion of the dataset into a training set and the remainder into a test set.
 - The training set will be used to build the model and the test set will be used to validate the model.

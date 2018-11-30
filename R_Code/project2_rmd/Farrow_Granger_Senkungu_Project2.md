@@ -345,6 +345,93 @@ ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) +
 
 ![](Farrow_Granger_Senkungu_Project2_files/figure-html/Boxplot-1.png)<!-- -->
 
+## MODEL SELECTION
+- In stepwise regression, the full model is passed to a *step* function. The stepwise function iteratively searches the full scope of variables.
+- The iteration will be performed in a forward and backwards directions.
+- In a backward selection, the *step* function performs multiple iteractions by droping one independent variable at a time.  
+- In a forward selection, the *step* function performs multiple iteractions by adding one independent variable at a time.
+- In each (forward and backward) iteration, multiple models are built and the AIC of the models is computed and the model that yields the lowest AIC is retained for the next iteration.  
+
+
+```r
+wdbc.data.2 <- wdbc.data %>% dplyr::select(-ID)
+
+lmMod <- lm(Class ~ . , data = wdbc.data.2)
+selectedMod <- step(lmMod, direction = "forward")
+```
+
+```
+## Start:  AIC=-2673.1
+## Class ~ Clump + Cell_Size + Cell_Shape + Adhesion + Epithelial + 
+##     Nuclei + Chromatin + Nucleoli + Mitoses
+```
+
+```r
+all.vifs <- car::vif(selectedMod)
+print(all.vifs)
+```
+
+```
+##      Clump  Cell_Size Cell_Shape   Adhesion Epithelial     Nuclei 
+##   1.913657   7.191346   6.497428   2.459211   2.545028   2.537651 
+##  Chromatin   Nucleoli    Mitoses 
+##   2.869984   2.440694   1.388399
+```
+
+- When using a forward selection, all nine variables are retained in the model selection.
+
+
+```r
+selectedMod <- step(lmMod, direction = "backward")
+```
+
+```
+## Start:  AIC=-2673.1
+## Class ~ Clump + Cell_Size + Cell_Shape + Adhesion + Epithelial + 
+##     Nuclei + Chromatin + Nucleoli + Mitoses
+## 
+##              Df Sum of Sq    RSS     AIC
+## - Mitoses     1     0.076 203.73 -2674.6
+## <none>                    203.65 -2673.1
+## - Epithelial  1     0.577 204.23 -2671.1
+## - Adhesion    1     0.589 204.24 -2671.1
+## - Cell_Shape  1     2.111 205.76 -2660.7
+## - Cell_Size   1     3.607 207.26 -2650.6
+## - Chromatin   1     4.908 208.56 -2641.8
+## - Nucleoli    1     6.581 210.23 -2630.6
+## - Clump       1    23.902 227.55 -2519.9
+## - Nuclei      1    62.019 265.67 -2303.4
+## 
+## Step:  AIC=-2674.58
+## Class ~ Clump + Cell_Size + Cell_Shape + Adhesion + Epithelial + 
+##     Nuclei + Chromatin + Nucleoli
+## 
+##              Df Sum of Sq    RSS     AIC
+## <none>                    203.73 -2674.6
+## - Adhesion    1     0.654 204.38 -2672.1
+## - Epithelial  1     0.690 204.42 -2671.8
+## - Cell_Shape  1     2.113 205.84 -2662.2
+## - Cell_Size   1     3.663 207.39 -2651.7
+## - Chromatin   1     4.839 208.56 -2643.8
+## - Nucleoli    1     6.828 210.55 -2630.5
+## - Clump       1    24.176 227.90 -2519.8
+## - Nuclei      1    61.944 265.67 -2305.4
+```
+
+```r
+all.vifs <- car::vif(selectedMod)
+print(all.vifs)
+```
+
+```
+##      Clump  Cell_Size Cell_Shape   Adhesion Epithelial     Nuclei 
+##   1.905723   7.176186   6.497372   2.419999   2.446095   2.534515 
+##  Chromatin   Nucleoli 
+##   2.848059   2.409681
+```
+
+- When using a backward selection, eight variables are retained in the model selection, only Mitoses is omitted from the model selection.
+
 ## Logistic Regression
 - Following the established discipline of dividing a portion of the dataset into a training set and the remainder into a test set.
 - The training set will be used to build the model and the test set will be used to validate the model.
