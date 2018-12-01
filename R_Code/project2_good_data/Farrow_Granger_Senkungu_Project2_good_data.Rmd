@@ -1,0 +1,534 @@
+---
+title: "Stats 2 Project 2"
+author: "Rick Farrow, Bruce Granger, TQ Senkungu"
+date: "12/1/2018"
+output:
+    html_document:
+        keep_md: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Load Required Libraries
+- Tidyverse 
+- Amelia
+- Corrplot
+- PSCL
+
+```{r Load_Libraries, include=FALSE}
+# function to install any missing packages if needd to run knitr
+
+install.if.nec <- function(x){
+  for( i in x ){
+    #  require returns TRUE invisibly if it was able to load package
+    if( ! require( i , character.only = TRUE ) ){
+      #  If package was not able to be loaded then re-install
+      install.packages( i , dependencies = TRUE, repos = "http://cran.us.r-project.org")
+      #  Load package after installing
+      require( i , character.only = TRUE )
+    }
+  }
+}
+
+#  Try/install necessary packages
+# Use this function wherever you make use of other packages.
+install.if.nec( c("tidyverse", "Amelia", "corrplot", "pscl", "ROCR", "MASS", "car" ) )
+#  Try/install necessary packages
+
+library(ROCR)
+library(MASS)
+library(tidyverse)
+library(Amelia)
+library(corrplot)
+library(pscl)
+library(car)
+```
+
+## Load Data
+
+- We are using the Breast Cancer Data from the Wisconsin Diagnostic Breast Cancer (WDBC) dataset and will first load it.
+
+```{r input_data}
+wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/breast-cancer-wisconsin-data.csv", 
+                      sep = ",", 
+                      row.names = NULL, 
+                      header = TRUE,
+                      na.strings = c(""),
+                      stringsAsFactors = FALSE)
+
+wdbc_data <- wdbc_data %>% filter(ID !="Sample_code_number")
+```
+
+# Bruce's Work Starts Here
+
+## Check for missing values
+```{r CheckForMissingValues}
+sapply(wdbc_data,function(x) sum(is.na(x)))
+```
+
+- The above output identifies there is missing data in each of the attributes, but what is not clear at this point if the missing values are for the same of different IDs.
+
+- The following visualizes where the missing data is occurring:
+
+```{r CheckForMissingValuesViz}
+missmap(wdbc_data, main = "Missing values vs observed")
+```
+
+- The above visualization shows that the missing feature values are missing from the same ID.  Since each of the respective ID's is missing values for all of the fetures it doesn't make since to impute values, therefore each of the records will be removed from the data set. 
+
+```{r CreateNAFreeDataSet}
+wdbc.data <- wdbc_data %>% 
+  filter(!is.na(wdbc_data$Uniformity_Cell_Shape))
+rm(wdbc_data)
+```
+
+- Attributes will be coerced from character to numeric data type. 
+- 32 NA will be introduced into the Bare_Nuclei attribute, the median will replace the NA values.
+- Add an attribute called CancerState, which is similiar to the Class attribute, the difference is that CancerState uses words to describe the condition, meaning when Class == 2, then "Benign" and when Class == 4, then "Malignant "
+
+```{r AttributeCoercion}
+wdbc.data$ID <- as.integer(wdbc.data$ID)
+wdbc.data$Clump_Thickness <- as.integer(wdbc.data$Clump_Thickness)
+wdbc.data$Uniformity_Cell_Size <- as.integer(wdbc.data$Uniformity_Cell_Size)
+wdbc.data$Uniformity_Cell_Shape <- as.integer(wdbc.data$Uniformity_Cell_Shape)
+wdbc.data$Marginal_Adhesion <- as.integer(wdbc.data$Marginal_Adhesion)
+wdbc.data$Single_Epithelial_Cell_Size <- as.integer(wdbc.data$Single_Epithelial_Cell_Size)
+wdbc.data$Bare_Nuclei <- as.integer(wdbc.data$Bare_Nuclei)
+wdbc.data$Bland_Chromatin <- as.integer(wdbc.data$Bland_Chromatin)
+wdbc.data$Normal_Nucleoli <- as.integer(wdbc.data$Normal_Nucleoli)
+wdbc.data$Mitoses <- as.integer(wdbc.data$Mitoses)
+wdbc.data$Class <- as.integer(wdbc.data$Class)
+
+wdbc.data <- wdbc.data %>%
+  dplyr::select(ID, Clump = Clump_Thickness, Cell_Size = Uniformity_Cell_Size, 
+         Cell_Shape = Uniformity_Cell_Shape, Adhesion = Marginal_Adhesion,
+         Epithelial = Single_Epithelial_Cell_Size, Nuclei = Bare_Nuclei,
+         Chromatin = Bland_Chromatin, Nucleoli = Normal_Nucleoli, everything())
+
+wdbc.data %>% dplyr::select(Nuclei) %>% summary()
+
+wdbc.data$Nuclei <- ifelse(is.na(wdbc.data$Nuclei),
+                           median(wdbc.data$Nuclei, na.rm=TRUE), 
+                           wdbc.data$Nuclei)
+
+wdbc.data %>% dplyr::select(Nuclei) %>% summary()
+
+entire.dataset <- wdbc.data %>% 
+  mutate(CancerState = case_when(Class == 2 ~ "Benign",
+                                 Class == 4 ~ "Malignant"))
+
+entire.dataset$CancerState <- as.factor(entire.dataset$CancerState)
+```
+
+
+## Summary Statistics/Histograms
+```{r SummaryStats}
+entire.dataset %>% dplyr::select(c(2:12)) %>% summary() 
+
+# TOTAL COUNT BY CANCER TYPE ####
+ggplot(data=entire.dataset, aes(x=CancerState, colour = CancerState)) +
+  geom_bar() +
+  geom_text(stat='Count', aes(label=..count..), vjust = 10) +
+  theme(legend.position = "none") +
+  scale_color_manual(values = c("blue", "red")) +
+  ggtitle("Total Count by Cancer Type: Blue = Benign; Red = Malignant ") 
+  
+
+# PERCENT OF TOTAL BY CANCER TYPE ####
+entire.dataset.percent <- entire.dataset %>% 
+  count(CancerState) %>% 
+  mutate(perc = n / nrow(entire.dataset))
+
+ggplot(data=entire.dataset.percent, aes(x = CancerState, y = perc, colour = CancerState)) +
+  geom_bar(stat = "identity") +
+  geom_text(stat = "identity", aes(label=round(perc*100,2)), vjust = 10) +
+  theme(legend.position = "none") +
+  scale_color_manual(values = c("blue", "red")) +
+  ggtitle("Percent of Total by Cancer Type: Blue = Benign; Red = Malignant ")
+rm(entire.dataset.percent) 
+```
+
+- Ideally, the proportion of events and non-events in the Y variable should approximately be the same.
+- From the above histograms it is obvious there is a class bias, a condition observed when the Malignant proportion of events is much smaller than proportion of Benign events, by a factor of 1 to 1.9.  
+- As a result, we must sample the observations in approximately equal proportions in order to get better model.  Unfortunately we have a small sample size, which means we are not able to implement this strategy. 
+ 
+## Pairs Plots
+- Version 1:
+- The objective of the "Pairs Plot" is to create plots based upon paring of variables
+- Additionaly, each observation is color coded to simutaleniously see if the observation is "Benign" or "Malignant " cancer.  
+  - Color Coding:
+    * Blue = Benign 
+    * Red = Malignant 
+
+```{r pairsplot_ver1}
+ed.small <- entire.dataset %>% dplyr::select(-c(1,12))
+
+cols <- character(nrow(ed.small))
+cols[] <- "black"
+cols[ed.small$Class == 2] <- "blue"
+cols[ed.small$Class == 4] <- "red"
+pairs(ed.small, col=cols, main = "WDBC Pairs Plot: Blue = Benign; Red = Malignant ")
+rm(cols)
+```
+
+- Version 2:
+- Similar to the first Pairs Plot, however version 2 introduces jitter to the observations and as a result it is easy to see the density of the observations.
+
+```{r pairsplot_ver2}
+
+# the alpha argument in rgb() lets you set the transparency
+cols2 = c(rgb(red=0, green=0, blue=255, alpha=50, maxColorValue=255), 
+          rgb(red=255, green=0, blue=0, alpha=50, maxColorValue=255))
+cols2 = ifelse(ed.small$Class==2, cols2[1], cols2[2])
+
+# here we jitter the data
+set.seed(6141)  # this makes the example exactly reproducible
+jbreast = apply(ed.small[,1:9], 2, FUN=function(x){ jitter(x, amount=.5) })
+jbreast = cbind(jbreast, class=ed.small[,10])  # the class variable is not jittered
+
+#windows()  # to match up the 1st & 2nd sets requires more coding
+layout(matrix(1:25, nrow=5, byrow=T))
+par(mar=c(.5,.5,.5,.5), oma=c(2,2,2,2))
+
+for(i in 1:5){
+   for(j in 6:10){
+    
+    plot(jbreast[,j], jbreast[,i], col=cols2, pch=16,
+         
+         axes=F, main="", xlab="", ylab="")
+    
+    box()
+    
+    if(j==6 ){ mtext(colnames(jbreast)[i], side=2, cex=.7, line=1) }
+    
+    if(i==5 ){ mtext(colnames(jbreast)[j], side=1, cex=.7, line=1) }
+    
+    if(j==10){ axis(side=4, seq(2,10,2), cex.axis=.8) }
+    
+    if(i==1 ){ axis(side=3, seq(2,10,2), cex.axis=.8) }
+    
+  }
+  
+}
+rm(list = c("jbreast", "cols2", "i", "j"))
+
+```
+
+## Corrleation Plot
+- Positive correlations are displayed in blue and negative correlations in red color.
+- Color intensity and the size of the circle are proportional to the correlation coefficients.
+
+```{r CorrelationPlot}
+corr <- cor(ed.small)
+corrplot(corr, method ="number", type= "upper")
+corrplot(corr, method ="circle", type= "upper")
+rm(corr)
+```
+
+## Histogram
+- The histograms are a look at each attribute broken down by CancerState
+
+```{r histogram}
+ed.small <- entire.dataset %>% dplyr::select(-c(1,11))
+
+ed.tall <- ed.small %>%
+  gather(-10, key = "Variable", value = "Value") %>% 
+  filter(!is.na(CancerState))
+
+ggplot(data = ed.tall, aes(x=Value)) +
+  geom_histogram(bins=15) + 
+  facet_wrap(Variable ~ CancerState, ncol = 9)
+```
+
+## Boxplots
+- Boxplot of attributes, color by CancerState
+
+```{r Boxplot}
+ed.tall <- ed.small %>% 
+  gather(-10, key = "Variable", value = "Value") %>% 
+  filter(!is.na(CancerState))
+
+ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) + 
+  geom_boxplot() +
+  facet_wrap(~ Variable) +
+  ggtitle("WDBC Boxplot ") + 
+  scale_fill_manual(breaks = c("Benign", "Malignant "), values = c("blue", "red")) +
+  theme(legend.position="none")
+```
+
+## MODEL SELECTION
+- In stepwise regression, the full model is passed to a *step* function. The stepwise function iteratively searches the full scope of variables.
+- The iteration will be performed in a forward and backwards directions.
+- In a backward selection, the *step* function performs multiple iteractions by droping one independent variable at a time.  
+- In a forward selection, the *step* function performs multiple iteractions by adding one independent variable at a time.
+- In each (forward and backward) iteration, multiple models are built and the AIC of the models is computed and the model that yields the lowest AIC is retained for the next iteration.  
+
+```{r StepwiseForwardSelection}
+wdbc.data.2 <- wdbc.data %>% dplyr::select(-ID)
+
+lmMod <- lm(Class ~ . , data = wdbc.data.2)
+selectedMod <- step(lmMod, direction = "forward")
+
+all.vifs <- car::vif(selectedMod)
+print(all.vifs)
+```
+
+- When using a forward selection, all nine variables are retained in the model selection.
+
+```{r StepwiseBackwardSelection}
+selectedMod <- step(lmMod, direction = "backward")
+all.vifs <- car::vif(selectedMod)
+print(all.vifs)
+```
+
+- When using a backward selection, eight variables are retained in the model selection, only Mitoses is omitted from the model selection.
+
+## Logistic Regression
+- Following the established discipline of dividing a portion of the dataset into a training set and the remainder into a test set.
+- The training set will be used to build the model and the test set will be used to validate the model.
+- The training set will consist of 20% of the data and the test set will consist of the remaining 80%.
+- A set.seed is used at the beginning of the test and training division in order to get reproducible results.
+```{r LogisticRegression}
+wdbc.data.2 <-  wdbc.data %>% mutate(Class2 = case_when(Class == 2 ~ 0,
+                                                        Class == 4 ~ 1)) %>%
+ dplyr::select(Clump, Cell_Size, Cell_Shape, Adhesion, Epithelial, Nuclei,
+               Chromatin, Nucleoli, Mitoses, Class = Class2)
+
+wdbc.data.2$Class <- as.factor(wdbc.data.2$Class)
+
+set.seed(12345) #to get repeatable data
+
+#wdbc.train <- sample_frac(ed.small, 0.2, replace = FALSE)
+wdbc.train <- sample_frac(wdbc.data.2, 0.2, replace = FALSE)
+
+train.index <- as.numeric(rownames(wdbc.train))
+#wdbc.test <- ed.small[-train.index,]
+wdbc.test <- wdbc.data.2[-train.index,]
+
+rm(train.index)
+
+# MODEL FITTING
+# wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = binomial(link = "logit"))
+# wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = "binomial")
+wdbc.glm.fit <- glm(Class ~ ., data = wdbc.train, family = "binomial")
+summary(wdbc.glm.fit)
+```
+
+Assessing Model Fit:
+
+The following attributes are NOT statistically significant:  
+* Cell_Size  
+* Epithelial  
+  
+The following attributes ARE statistically significant:  
+* Clump  
+* Nuclei  
+* Chromatin  
+* Adhesion  
+* Cell_Shape  
+* Mitoses  
+  
+- In this logit model, the response valirable (CancerState) is log odds, a unit increase in Clump increases the odds by 0.6, a unit increase in Nuclei increases the odds by 0.4, and a unit increase in Chromatin increases the odds by 0.5.
+- The null deviance (the deviance just for the mean) is 1271 and the residual deviance (the deviance for the model) is 171.
+- The difference between the null deviance and the residual deviance shows how the model is doing against the null model (a model with only the intercept). The wider the gap between the null deviance and the residual deviance, the better.
+- Analyzing the table we can see the drop in deviance when adding each variable one at a time, with the exception of when adding Nuclei and Chromatin.
+- With the addition of Clump significantly reduces the residual deviance and each additional attribute reduces the residual deviance, but in much smaller increments.
+
+```{r GLM_FIT_ANOVA}
+anova(wdbc.glm.fit, test = "Chisq")
+```
+
+Assessing Table of Deviance (ToD):
+
+From the ToD we are able to see the difference between the null deviance versus the residual deviance.  The ToD shows how our model is doing against the null model, which is a model with only the intercept. The wider this gap between the model versus the null, the better.
+
+By adding Clump and Cell_Size to the model drastically reduces the residual deviance.  All attributes have 0.05 p-value or less.
+
+Eventhough there is not an exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:
+```{r ModelFit}
+pr2_mc <- pR2(wdbc.glm.fit)
+pr2_mc[[4]]
+```
+
+Assessing the predictive ability of the logistic regression model by predicting from test dataset using against the training dataset:
+- The predict function provides probabilities of classification
+- Using a probabilities from the predict function, the ifelse will use the threshold of 0.5 to assign classification of "Malignant ", else it will assign a classification of "Benign"
+- A confusion matrix will provide how well the model is doing
+```{r PredictTest}
+glm.probs <- predict(wdbc.glm.fit, wdbc.test, type = "response")
+
+prediction(glm.probs, wdbc.test$Class) -> pred_log
+
+performance(pred_log, "acc") -> acc
+plot(acc) 
+plot(glm.probs)
+
+# MAX Accuracy ~ 0.1
+# Confusion Matrix Using Max Accuracy
+x <- table(wdbc.test$Class,glm.probs > 0.6)
+x
+
+# Accuracy when using Max Accuracy Cutoff is:
+(x[1] + x[4])/(x[1] + x[2] + x[3] + x[4])
+
+# TP and FP Rates When Using Max Accuracy Cutoff when cutoff:
+# TP Rate:
+x[4]/(x[4] + x[2])
+# FP Rate:
+x[3]/(x[3] + x[1])
+
+# Build ROC to get good tradoff between Accuracy and TP/FP Rate
+performance(pred_log, "tpr", "fpr") -> roc_curve
+plot(roc_curve, colorize=T)
+
+glm.pred <- ifelse(glm.probs > 0.39, "Malignant ","Benign")
+
+# We are attempting to predict CancerState variabel in the dataset, this is used to evaluate what is predicted in the model to the actual state
+attach(wdbc.test)
+table(glm.pred,Class)
+
+```
+- The confusion matrix operates on the diagonial where the model predicted **CORRECTLY**, starting at the top left (726) and the bottom right (335).
+- The off diagonial is where the model predicted **INCORRECTLY**, starting at the bottom left (39) and the top right (18).
+- Out of 1118 records, the model had 1070 accurate predictions for an accuracy rate of 95%
+
+# Bruce's Work Ends Here
+
+# Rick's Work Starts Here
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+
+```
+
+# Rick's Work Ends Here
+
+#TQ's Work Starts Here
+
+
+##Proportions
+
+```{r proportions}
+attach(entire.dataset)
+#table of counts
+ftable(addmargins(table(CancerState, Clump)))
+ftable(addmargins(table(CancerState, Cell_Size)))
+ftable(addmargins(table(CancerState, Cell_Shape)))
+ftable(addmargins(table(CancerState, Adhesion)))
+ftable(addmargins(table(CancerState, Epithelial)))
+ftable(addmargins(table(CancerState, Nuclei)))
+ftable(addmargins(table(CancerState, Chromatin)))
+ftable(addmargins(table(CancerState, Nucleoli)))
+ftable(addmargins(table(CancerState, Mitoses)))
+
+#in proprtions
+prop.table(table(CancerState, Clump),2)
+prop.table(table(CancerState, Cell_Size),2)
+prop.table(table(CancerState, Cell_Shape),2)
+prop.table(table(CancerState, Adhesion),2)
+prop.table(table(CancerState, Epithelial),2)
+prop.table(table(CancerState, Nuclei),2)
+prop.table(table(CancerState, Chromatin),2)
+prop.table(table(CancerState, Nucleoli),2)
+prop.table(table(CancerState, Mitoses),2)
+
+#vizualize 
+plot(CancerState~Clump,col=c("red","blue"))
+plot(CancerState~Cell_Shape,col=c("red","blue"))
+plot(CancerState~Cell_Size,col=c("red","blue"))
+plot(CancerState~Adhesion,col=c("red","blue"))
+plot(CancerState~Epithelial,col=c("red","blue"))
+plot(CancerState~Nuclei,col=c("red","blue"))
+plot(CancerState~Chromatin,col=c("red","blue"))
+plot(CancerState~Nucleoli,col=c("red","blue"))
+plot(CancerState~Mitoses,col=c("red","blue"))
+
+```
+
+## PCA
+
+```{r PCA}
+pc.result<-prcomp(entire.dataset[,2:11],scale.=TRUE)
+pc.scores<-pc.result$x
+pc.scores<-data.frame(pc.scores)
+pc.scores$Class<-entire.dataset$Class
+
+#Scree plot
+eigenvals<-(pc.result$sdev)^2
+plot(1:10,eigenvals/sum(eigenvals),type="l",main="Scree Plot PC's",ylab="Prop. Var. Explained",ylim=c(0,1))
+cumulative.prop<-cumsum(eigenvals/sum(eigenvals))
+lines(1:10,cumulative.prop,lty=2)
+
+
+#Use ggplot2 to plot the first few pc's
+ggplot(data = pc.scores, aes(x = PC1, y = PC2)) +
+  geom_point(aes(col=Class), size=1)+
+  ggtitle("PCA of Cancer Status")
+
+ggplot(data = pc.scores, aes(x = PC2, y = PC3)) +
+  geom_point(aes(col=Class), size=1)+
+  ggtitle("PCA of Cancer Status")
+
+ggplot(data = pc.scores, aes(x = PC1, y = PC3)) +
+  geom_point(aes(col=Class), size=1)+
+  ggtitle("PCA of Cancer Status")
+```
+## Separation
+
+PC1 vs PC2 and PC1 vs PC3 show good separation so some variable is a good predictor of cancer status.
+
+
+## LDA & QDA
+
+```{r LDA_QDA}
+
+mylda<- lda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
+myqda<- qda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
+
+#confusion matrix
+set.seed(2134)
+index<-sample(1:385,250,replace=FALSE)
+test.entire.dataset<-entire.dataset[-index,]
+prd<-predict(mylda, newdata = test.entire.dataset)$class
+table(prd,test.entire.dataset$Class)
+
+#ROC
+ldaprd<-predict(mylda, newdata = entire.dataset)$posterior
+#correcting for the way lda creates predicted probabilities
+ldaprd<-ldaprd[,2]
+
+pred <- prediction(ldaprd, entire.dataset$Class)
+roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")
+auc.train <- performance(pred, measure = "auc")
+auc.train <- auc.train@y.values
+
+#Plot ROC
+plot(roc.perf,main="LDA")
+abline(a=0, b= 1) #Ref line indicating poor performance
+text(x = .40, y = .6,paste("AUC = ", round(auc.train[[1]],3), sep = ""))
+```
+
+
+## Stepwise Regression
+
+```{r stepwise}
+#?lm
+
+full.model <- lm (Class ~., data = entire.dataset)
+```
+
+## LDA
+
+```{r LDA}
+entire.dataset.continuous <- entire.dataset[, c(2:11)]
+pairs(entire.dataset.continuous[,1:10])
+
+```
+
+
+#TQ's Work Ends Here
