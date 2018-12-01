@@ -34,7 +34,7 @@ install.if.nec <- function(x){
 
 #  Try/install necessary packages
 # Use this function wherever you make use of other packages.
-install.if.nec( c("tidyverse", "Amelia", "corrplot", "pscl", "ROCR", "MASS" ) )
+install.if.nec( c("tidyverse", "Amelia", "corrplot", "pscl", "ROCR", "MASS", "car" ) )
 #  Try/install necessary packages
 
 library(ROCR)
@@ -43,6 +43,7 @@ library(tidyverse)
 library(Amelia)
 library(corrplot)
 library(pscl)
+library(car)
 ```
 
 ## Load Data
