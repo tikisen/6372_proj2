@@ -36,14 +36,18 @@ install.if.nec <- function(x){
 # Use this function wherever you make use of other packages.
 install.if.nec( c("tidyverse", "Amelia", "corrplot", "pscl", "ROCR", "MASS", "car" ) )
 #  Try/install necessary packages
-
+library(car)
 library(ROCR)
 library(MASS)
 library(tidyverse)
 library(Amelia)
 library(corrplot)
 library(pscl)
+<<<<<<< Updated upstream
 library(car)
+=======
+library(ggfortify) # GLM Diagnostics R
+>>>>>>> Stashed changes
 ```
 
 ## Load Data
@@ -312,8 +316,16 @@ rm(train.index)
 # MODEL FITTING
 # wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = binomial(link = "logit"))
 # wdbc.glm.fit <- glm(CancerState ~ ., data = wdbc.train, family = "binomial")
-wdbc.glm.fit <- glm(Class ~ ., data = wdbc.train, family = "binomial")
+# BASED UPON CORR PLOT, @ SIGN .4, REMOVE MITOSES
+wdbc.glm.fit <- glm(Class ~ . -Mitoses, data = wdbc.train, family = "binomial")
 summary(wdbc.glm.fit)
+
+# CHECKING CORR, ABOVE AVG VIF FOR CELLSIZE @ 4.8
+vif(wdbc.glm.fit)
+
+# GLM Diagnostics R:
+
+autoplot(wdbc.glm.fit, which = 1:6, label.size = 3)
 ```
 
 Assessing Model Fit:
