@@ -51,7 +51,7 @@ library(car)
 - We are using the Breast Cancer Data from the Wisconsin Diagnostic Breast Cancer (WDBC) dataset and will first load it.
 
 ```{r input_data}
-wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/wdbc.data.csv", 
+wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/wdbc.data1.csv", 
                       sep = ",", 
                       row.names = NULL, 
                       header = TRUE,
