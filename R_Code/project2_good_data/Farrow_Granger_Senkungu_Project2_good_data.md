@@ -14,6 +14,10 @@ output:
 - Amelia
 - Corrplot
 - PSCL
+- ROCR
+- MASS
+- car
+- ggfortify
 
 
 
@@ -256,13 +260,7 @@ ggplot(ed.tall, aes(x=diagnosis, y=Value, fill = diagnosis)) +
 rm(ed.tall)
 ```
 
-## MODEL SELECTION
-- In stepwise regression, the full model is passed to a *step* function. The stepwise function iteratively searches the full scope of variables.
-- The iteration will be performed in a forward and backwards directions.
-- In a backward selection, the *step* function performs multiple iteractions by droping one independent variable at a time.  
-- In a forward selection, the *step* function performs multiple iteractions by adding one independent variable at a time.
-- In each (forward and backward) iteration, multiple models are built and the AIC of the models is computed and the model that yields the lowest AIC is retained for the next iteration.  
-
+## Model - VIF
 
 ```r
 glm_fits = glm(diagnosis ~.-ID_number,data=wdbc_sub,family="binomial")
@@ -285,6 +283,7 @@ car::vif(glm_fits)
 ##          1.839511          9.787700
 ```
 
+## GLM Model - Leverage and Outliers
 
 ```r
 par(mfrow = c(1, 2))
@@ -293,113 +292,348 @@ autoplot(glm_fits, which = 1:6, ncol = 3, label.size = 3, colour = 'diagnosis')
 
 ![](Farrow_Granger_Senkungu_Project2_good_data_files/figure-html/leverage_and_outliers-1.png)<!-- -->
 
-
 ```r
-wdbc.sub_Not153 <- wdbc.sub[-153,]
-wdbc_sub_Not153 <- wdbc_sub[-153,]
+rm(list = c("glm_fits"))
 ```
 
+## GLM Model Forward - Summary Stats
 
 ```r
 ed.small <- wdbc_sub %>% dplyr::select(-1)
-
-lmMod <- lm(diagnosis ~ . , data = ed.small)
-selectedMod <- step(lmMod, direction = "forward")
+glmMod <- glm(diagnosis ~ . , data = ed.small)
+selectedMod <- step(glmMod, direction = "forward")
 ```
 
 ```
-## Start:  AIC=-1458.28
+## Start:  AIC=158.47
 ## diagnosis ~ radius + texture + perimeter + area + smoothness + 
 ##     compactness + concavity + concave_points + symmetry + fractal_dimension
 ```
 
 ```r
-all.vifs <- car::vif(selectedMod)
-print(all.vifs)
+summary(selectedMod)
 ```
 
 ```
-##            radius           texture         perimeter              area 
-##       1606.805835          1.186978       1956.135364         56.283984 
-##        smoothness       compactness         concavity    concave_points 
-##          2.957080         22.619498         11.715217         21.711976 
-##          symmetry fractal_dimension 
-##          1.778451          6.472842
-```
-
-- When using a forward selection, all nine variables are retained in the model selection.
-
-
-```r
-selectedMod <- step(lmMod, direction = "backward")
-```
-
-```
-## Start:  AIC=-1458.28
-## diagnosis ~ radius + texture + perimeter + area + smoothness + 
-##     compactness + concavity + concave_points + symmetry + fractal_dimension
 ## 
-##                     Df Sum of Sq    RSS     AIC
-## - fractal_dimension  1    0.0001 42.196 -1460.3
-## - compactness        1    0.0007 42.197 -1460.3
-## - smoothness         1    0.1431 42.339 -1458.3
-## <none>                           42.196 -1458.3
-## - concavity          1    0.2020 42.398 -1457.6
-## - symmetry           1    0.2458 42.442 -1457.0
-## - perimeter          1    0.5181 42.714 -1453.3
-## - radius             1    1.0541 43.250 -1446.2
-## - area               1    1.1393 43.336 -1445.1
-## - concave_points     1    1.6291 43.825 -1438.7
-## - texture            1    4.2740 46.470 -1405.4
+## Call:
+## glm(formula = diagnosis ~ radius + texture + perimeter + area + 
+##     smoothness + compactness + concavity + concave_points + symmetry + 
+##     fractal_dimension, data = ed.small)
 ## 
-## Step:  AIC=-1460.28
-## diagnosis ~ radius + texture + perimeter + area + smoothness + 
-##     compactness + concavity + concave_points + symmetry
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.6654  -0.1908  -0.0387   0.1806   0.8223  
 ## 
-##                  Df Sum of Sq    RSS     AIC
-## - compactness     1    0.0007 42.197 -1462.3
-## - smoothness      1    0.1475 42.344 -1460.3
-## <none>                        42.196 -1460.3
-## - concavity       1    0.2037 42.400 -1459.5
-## - symmetry        1    0.2466 42.443 -1459.0
-## - perimeter       1    0.5391 42.735 -1455.1
-## - radius          1    1.0636 43.260 -1448.1
-## - area            1    1.3384 43.535 -1444.5
-## - concave_points  1    1.6356 43.832 -1440.6
-## - texture         1    4.3073 46.504 -1407.0
+## Coefficients:
+##                     Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)       -2.0520842  0.4166539  -4.925 1.11e-06 ***
+## radius             0.4900123  0.1312459   3.734 0.000208 ***
+## texture            0.0219732  0.0029228   7.518 2.23e-13 ***
+## perimeter         -0.0549747  0.0210018  -2.618 0.009095 ** 
+## area              -0.0009548  0.0002460  -3.881 0.000116 ***
+## smoothness         1.9408621  1.4107971   1.376 0.169460    
+## compactness        0.0972608  1.0390787   0.094 0.925458    
+## concavity          0.8097675  0.4953986   1.635 0.102702    
+## concave_points     6.4310115  1.3855810   4.641 4.32e-06 ***
+## symmetry           1.0119000  0.5612933   1.803 0.071959 .  
+## fractal_dimension -0.1192924  4.1578258  -0.029 0.977121    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Step:  AIC=-1462.27
-## diagnosis ~ radius + texture + perimeter + area + smoothness + 
-##     concavity + concave_points + symmetry
+## (Dispersion parameter for gaussian family taken to be 0.07562057)
 ## 
-##                  Df Sum of Sq    RSS     AIC
-## <none>                        42.197 -1462.3
-## - smoothness      1    0.1695 42.367 -1462.0
-## - concavity       1    0.2231 42.420 -1461.3
-## - symmetry        1    0.2603 42.457 -1460.8
-## - perimeter       1    1.0490 43.246 -1450.3
-## - area            1    1.6036 43.801 -1443.0
-## - concave_points  1    1.6451 43.842 -1442.5
-## - radius          1    1.9219 44.119 -1438.9
-## - texture         1    4.3202 46.517 -1408.8
-```
-
-```r
-all.vifs <- car::vif(selectedMod)
-print(all.vifs)
-```
-
-```
-##         radius        texture      perimeter           area     smoothness 
-##     849.780939       1.176345     913.545248      40.918626       2.580016 
-##      concavity concave_points       symmetry 
-##      10.871282      21.567235       1.714562
+##     Null deviance: 133.012  on 568  degrees of freedom
+## Residual deviance:  42.196  on 558  degrees of freedom
+## AIC: 158.47
+## 
+## Number of Fisher Scoring iterations: 2
 ```
 
 ```r
 rm(ed.small)
 ```
 
+## GLM Model Backward - Summary Stats
+
+```r
+ed.small <- wdbc_sub %>% dplyr::select(-1)
+glmMod <- glm(diagnosis ~ . , data = ed.small)
+selectedMod <- step(glmMod, direction = "backward")
+```
+
+```
+## Start:  AIC=158.47
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     compactness + concavity + concave_points + symmetry + fractal_dimension
+## 
+##                     Df Deviance    AIC
+## - fractal_dimension  1   42.196 156.47
+## - compactness        1   42.197 156.48
+## - smoothness         1   42.339 158.40
+## <none>                   42.196 158.47
+## - concavity          1   42.398 159.19
+## - symmetry           1   42.442 159.78
+## - perimeter          1   42.714 163.41
+## - radius             1   43.250 170.51
+## - area               1   43.336 171.63
+## - concave_points     1   43.825 178.03
+## - texture            1   46.470 211.37
+## 
+## Step:  AIC=156.47
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     compactness + concavity + concave_points + symmetry
+## 
+##                  Df Deviance    AIC
+## - compactness     1   42.197 154.48
+## - smoothness      1   42.344 156.46
+## <none>                42.196 156.47
+## - concavity       1   42.400 157.21
+## - symmetry        1   42.443 157.79
+## - perimeter       1   42.735 161.70
+## - radius          1   43.260 168.64
+## - area            1   43.535 172.24
+## - concave_points  1   43.832 176.11
+## - texture         1   46.504 209.78
+## 
+## Step:  AIC=154.48
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     concavity + concave_points + symmetry
+## 
+##                  Df Deviance    AIC
+## <none>                42.197 154.48
+## - smoothness      1   42.367 154.76
+## - concavity       1   42.420 155.48
+## - symmetry        1   42.457 155.98
+## - perimeter       1   43.246 166.45
+## - area            1   43.801 173.70
+## - concave_points  1   43.842 174.24
+## - radius          1   44.119 177.82
+## - texture         1   46.517 207.94
+```
+
+```r
+summary(selectedMod)
+```
+
+```
+## 
+## Call:
+## glm(formula = diagnosis ~ radius + texture + perimeter + area + 
+##     smoothness + concavity + concave_points + symmetry, data = ed.small)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -0.66657  -0.19201  -0.03814   0.18055   0.82117  
+## 
+## Coefficients:
+##                  Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)    -2.0638586  0.2529107  -8.160 2.21e-15 ***
+## radius          0.4811809  0.0952762   5.050 5.97e-07 ***
+## texture         0.0219923  0.0029045   7.572 1.53e-13 ***
+## perimeter      -0.0534559  0.0143268  -3.731  0.00021 ***
+## area           -0.0009658  0.0002094  -4.613 4.92e-06 ***
+## smoothness      1.9731828  1.3154401   1.500  0.13417    
+## concavity       0.8197314  0.4763727   1.721  0.08584 .  
+## concave_points  6.4409375  1.3784988   4.672 3.73e-06 ***
+## symmetry        1.0224176  0.5501390   1.858  0.06363 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 0.07535182)
+## 
+##     Null deviance: 133.012  on 568  degrees of freedom
+## Residual deviance:  42.197  on 560  degrees of freedom
+## AIC: 154.48
+## 
+## Number of Fisher Scoring iterations: 2
+```
+
+```r
+rm(ed.small)
+```
+
+## GLM Model - Removal of Leverage and Outliers
+
+```r
+wdbc.sub_Not153 <- wdbc.sub[-153,]
+wdbc_sub_Not153 <- wdbc_sub[-153,]
+```
+
+## MODEL SELECTION
+- In stepwise regression, the full model is passed to a *step* function. The stepwise function iteratively searches the full scope of variables.
+- The iteration will be performed in a forward and backwards directions.
+- In a backward selection, the *step* function performs multiple iteractions by droping one independent variable at a time.  
+- In a forward selection, the *step* function performs multiple iteractions by adding one independent variable at a time.
+- In each (forward and backward) iteration, multiple models are built and the AIC of the models is computed and the model that yields the lowest AIC is retained for the next iteration.  
+
+
+
+
+```r
+ed.small <- wdbc_sub %>% dplyr::select(-1)
+glmMod <- glm(diagnosis ~ . , data = ed.small)
+selectedMod <- step(glmMod, direction = "forward")
+```
+
+```
+## Start:  AIC=158.47
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     compactness + concavity + concave_points + symmetry + fractal_dimension
+```
+
+```r
+summary(selectedMod)
+```
+
+```
+## 
+## Call:
+## glm(formula = diagnosis ~ radius + texture + perimeter + area + 
+##     smoothness + compactness + concavity + concave_points + symmetry + 
+##     fractal_dimension, data = ed.small)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.6654  -0.1908  -0.0387   0.1806   0.8223  
+## 
+## Coefficients:
+##                     Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)       -2.0520842  0.4166539  -4.925 1.11e-06 ***
+## radius             0.4900123  0.1312459   3.734 0.000208 ***
+## texture            0.0219732  0.0029228   7.518 2.23e-13 ***
+## perimeter         -0.0549747  0.0210018  -2.618 0.009095 ** 
+## area              -0.0009548  0.0002460  -3.881 0.000116 ***
+## smoothness         1.9408621  1.4107971   1.376 0.169460    
+## compactness        0.0972608  1.0390787   0.094 0.925458    
+## concavity          0.8097675  0.4953986   1.635 0.102702    
+## concave_points     6.4310115  1.3855810   4.641 4.32e-06 ***
+## symmetry           1.0119000  0.5612933   1.803 0.071959 .  
+## fractal_dimension -0.1192924  4.1578258  -0.029 0.977121    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 0.07562057)
+## 
+##     Null deviance: 133.012  on 568  degrees of freedom
+## Residual deviance:  42.196  on 558  degrees of freedom
+## AIC: 158.47
+## 
+## Number of Fisher Scoring iterations: 2
+```
+
+```r
+# glmMod <- lm(diagnosis ~ . , data = ed.small)
+# selectedMod <- step(lmMod, direction = "forward")
+# all.vifs <- car::vif(selectedMod)
+# print(all.vifs)
+```
+
+- When using a forward selection, all nine variables are retained in the model selection.
+
+
+```r
+selectedMod <- step(glmMod, direction = "backward")
+```
+
+```
+## Start:  AIC=158.47
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     compactness + concavity + concave_points + symmetry + fractal_dimension
+## 
+##                     Df Deviance    AIC
+## - fractal_dimension  1   42.196 156.47
+## - compactness        1   42.197 156.48
+## - smoothness         1   42.339 158.40
+## <none>                   42.196 158.47
+## - concavity          1   42.398 159.19
+## - symmetry           1   42.442 159.78
+## - perimeter          1   42.714 163.41
+## - radius             1   43.250 170.51
+## - area               1   43.336 171.63
+## - concave_points     1   43.825 178.03
+## - texture            1   46.470 211.37
+## 
+## Step:  AIC=156.47
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     compactness + concavity + concave_points + symmetry
+## 
+##                  Df Deviance    AIC
+## - compactness     1   42.197 154.48
+## - smoothness      1   42.344 156.46
+## <none>                42.196 156.47
+## - concavity       1   42.400 157.21
+## - symmetry        1   42.443 157.79
+## - perimeter       1   42.735 161.70
+## - radius          1   43.260 168.64
+## - area            1   43.535 172.24
+## - concave_points  1   43.832 176.11
+## - texture         1   46.504 209.78
+## 
+## Step:  AIC=154.48
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     concavity + concave_points + symmetry
+## 
+##                  Df Deviance    AIC
+## <none>                42.197 154.48
+## - smoothness      1   42.367 154.76
+## - concavity       1   42.420 155.48
+## - symmetry        1   42.457 155.98
+## - perimeter       1   43.246 166.45
+## - area            1   43.801 173.70
+## - concave_points  1   43.842 174.24
+## - radius          1   44.119 177.82
+## - texture         1   46.517 207.94
+```
+
+```r
+summary(selectedMod)
+```
+
+```
+## 
+## Call:
+## glm(formula = diagnosis ~ radius + texture + perimeter + area + 
+##     smoothness + concavity + concave_points + symmetry, data = ed.small)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -0.66657  -0.19201  -0.03814   0.18055   0.82117  
+## 
+## Coefficients:
+##                  Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)    -2.0638586  0.2529107  -8.160 2.21e-15 ***
+## radius          0.4811809  0.0952762   5.050 5.97e-07 ***
+## texture         0.0219923  0.0029045   7.572 1.53e-13 ***
+## perimeter      -0.0534559  0.0143268  -3.731  0.00021 ***
+## area           -0.0009658  0.0002094  -4.613 4.92e-06 ***
+## smoothness      1.9731828  1.3154401   1.500  0.13417    
+## concavity       0.8197314  0.4763727   1.721  0.08584 .  
+## concave_points  6.4409375  1.3784988   4.672 3.73e-06 ***
+## symmetry        1.0224176  0.5501390   1.858  0.06363 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 0.07535182)
+## 
+##     Null deviance: 133.012  on 568  degrees of freedom
+## Residual deviance:  42.197  on 560  degrees of freedom
+## AIC: 154.48
+## 
+## Number of Fisher Scoring iterations: 2
+```
+
+```r
+rm(list = c("ed.small", "glmMod", "selectedMod"))
+```
+
+```r
+# selectedMod <- step(lmMod, direction = "backward")
+# all.vifs <- car::vif(selectedMod)
+# print(all.vifs)
+# rm(ed.small)
+# rm(list = c("ed.small", "lmMod", "all.vifs"))
+```
 - When using a backward selection, eight variables are retained in the model selection, only Mitoses is omitted from the model selection.
 
 ## Logistic Regression

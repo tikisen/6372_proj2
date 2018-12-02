@@ -16,6 +16,10 @@ knitr::opts_chunk$set(echo = TRUE)
 - Amelia
 - Corrplot
 - PSCL
+- ROCR
+- MASS
+- car
+- ggfortify
 
 ```{r Load_Libraries, include=FALSE}
 # function to install any missing packages if needd to run knitr
@@ -34,7 +38,7 @@ install.if.nec <- function(x){
 
 #  Try/install necessary packages
 # Use this function wherever you make use of other packages.
-install.if.nec( c("tidyverse", "Amelia", "corrplot", "pscl", "ROCR", "MASS", "car" ) )
+install.if.nec( c("tidyverse", "Amelia", "corrplot", "pscl", "ROCR", "MASS", "car", "ggfortify","glmnet" ) )
 #  Try/install necessary packages
 
 library(ROCR)
@@ -45,6 +49,7 @@ library(corrplot)
 library(pscl)
 library(car)
 library(ggfortify)
+library(glmnet)
 ```
 
 ## Load Data
@@ -79,9 +84,7 @@ wdbc_sub <- wdbc_sub %>% dplyr::mutate(dia = dplyr::case_when(diagnosis == "B" ~
 sapply(wdbc_data,function(x) sum(is.na(x)))
 ```
 
-- The above output identifies there is missing data in each of the attributes, but what is not clear at this point if the missing values are for the same of different IDs.
-
-- The following visualizes where the missing data is occurring:
+- The above output identifies there is not any missing data in any of the attributes.
 
 ## Summary Statistics/Histograms
 ```{r SummaryStats}
@@ -110,7 +113,7 @@ rm(wdbc.sub.percent)
 ```
 
 - Ideally, the proportion of events and non-events in the Y variable should approximately be the same.
-- From the above histograms it is obvious there is a class bias, a condition observed when the Malignant proportion of events is much smaller than proportion of Benign events, by a factor of 1 to 1.9.  
+- From the above histograms it is obvious there is a class bias, a condition observed when the Malignant proportion of events is much smaller than proportion of Benign events, by a factor of 1 to 1.68.  
 - As a result, we must sample the observations in approximately equal proportions in order to get better model.  Unfortunately we have a small sample size, which means we are not able to implement this strategy. 
  
 ## Pairs Plots
@@ -183,9 +186,61 @@ rm(list = c("jbreast", "cols2", "i", "j"))
 ```{r CorrelationPlot}
 ed.small <- wdbc.sub %>% dplyr::select(-c(1,2))
 corr <- cor(ed.small)
+
 corrplot(corr, method ="number", type= "upper")
 corrplot(corr, method ="circle", type= "upper")
 rm(list = c("corr", "ed.small"))
+```
+
+- The largest Pos correlations:
+
+- The largest Neg correlations:
+
+## Scatter Plot
+- Attributes vs diagnosis with Sep
+  - Area
+  - Compactness
+  - Concave Points
+  - Concavity
+  - Perimeter
+  - Radius
+  - Texture
+```{r ScatterVarVsDiag}
+ed.small <- wdbc_sub %>% select(diagnosis ,area, compactness, concave_points, 
+                                concavity, perimeter, radius, texture)
+
+ed.tall <- ed.small %>% gather(-diagnosis, key = "variable", value = "value")
+
+
+ggplot(data = ed.tall, aes(x=value, y=diagnosis)) +
+  geom_point(aes(colour =  diagnosis)) +
+  geom_jitter(aes(colour =  diagnosis)) +
+  facet_wrap(~variable, scales = "free", ncol = 4)
+
+ggplot(data = ed.tall, aes(x=value, y=diagnosis)) +
+  geom_point(aes(colour =  diagnosis)) +
+  geom_jitter(aes(colour =  diagnosis)) +
+  facet_grid(~variable, scales = "free")
+  
+  
+# geom_point(aes(colour =  diagnosis), shape = 1) +
+#   scale_colour_gradientn(colours = c("blue", "red")) +
+#   facet_wrap(~variable, scales = "free", ncol = 4) +
+#   ggtitle("Scatter: Variables vs Diagnosis") +
+#   geom_jitter()
+  
+  
+  # facet_wrap(~variable, scales = "free", ncol = 4) +
+  # ggtitle("Scatter: Variables vs Diagnosis") 
+  # 
+  # scale_color_manual(values = c("blue", "red"))
+
+
+ed.small <- wdbc_sub %>% select(fractal_dimension, smoothness, symmetry)
+  
+  ## CIRCLE BACK
+
+rm(list = c("ed.small", "ed.tall"))
 ```
 
 ## Histogram
@@ -216,18 +271,132 @@ ggplot(ed.tall, aes(x=diagnosis, y=Value, fill = diagnosis)) +
   theme(legend.position="none")
 rm(ed.tall)
 ```
+## Training and Test Datasets
+```{r TrainAndTest}
+set.seed(12345) #to get repeatable data
+ 
+wdbc.train <- sample_frac(wdbc.sub, 0.8, replace = FALSE)
+train.index <- as.numeric(rownames(wdbc.train))
+wdbc.test <- wdbc.sub[-train.index,]
 
+wdbc_train <- wdbc_sub[train.index,]
+wdbc_test <- wdbc_sub[-train.index,]
+
+rm(train.index)
+
+```
+
+## Model - VIF
 ```{r VIFModel}
 glm_fits = glm(diagnosis ~.-ID_number,data=wdbc_sub,family="binomial")
 car::vif(glm_fits)
+
+glm_fits = glm(diagnosis ~.-ID_number,data=wdbc_train,family="binomial")
+car::vif(glm_fits)
+# glm_fits REMOVE IN leverage_and_outliers SECTION)
 ```
 
+## GLM Model - Leverage and Outliers
 ```{r leverage_and_outliers}
 par(mfrow = c(1, 2))
 autoplot(glm_fits, which = 1:6, ncol = 3, label.size = 3, colour = 'diagnosis')
 rm(list = c("glm_fits"))
 ```
 
+## GLM Model Forward - Summary Stats
+```{r ModelSummaryStats-Forward}
+# ALL DATA
+ed.small <- wdbc_sub %>% dplyr::select(-1)
+glmMod <- glm(diagnosis ~ . , data = ed.small)
+selectedMod <- step(glmMod, direction = "forward")
+summary(selectedMod)
+
+rm(list = c("ed.small", "glmMod", "selectedMod"))
+
+# TRAIN DATA
+ed.small <- wdbc_train %>% dplyr::select(-1)
+glmMod <- glm(diagnosis ~ . , data = ed.small)
+selectedMod <- step(glmMod, direction = "forward")
+summary(selectedMod)
+
+rm(list = c("ed.small", "glmMod", "selectedMod"))
+```
+
+## GLM Model Backward - Summary Stats
+```{r ModelSummaryStats-Backward}
+# ALL DATA
+ed.small <- wdbc_sub %>% dplyr::select(-1)
+glmMod <- glm(diagnosis ~ . , data = ed.small)
+selectedMod <- step(glmMod, direction = "backward")
+summary(selectedMod)
+
+rm(list = c("ed.small", "glmMod", "selectedMod"))
+
+# TRAIN DATA
+ed.small <- wdbc_train %>% dplyr::select(-1)
+glmMod <- glm(diagnosis ~ . , data = ed.small)
+selectedMod <- step(glmMod, direction = "backward")
+summary(selectedMod)
+
+rm(list = c("ed.small", "glmMod", "selectedMod"))
+```
+
+## GLM Model Stepwise - Summary Stats
+```{r ModelSummaryStats-Both}
+# ALL DATA
+ed.small <- wdbc_sub %>% dplyr::select(-1)
+glmMod <- glm(diagnosis ~ . , data = ed.small)
+selectedMod <- step(glmMod, steps = 1000)
+summary(selectedMod)
+
+rm(list = c("ed.small", "glmMod", "selectedMod"))
+
+# TRAIN DATA
+ed.small <- wdbc_train %>% dplyr::select(-1)
+glmMod <- glm(diagnosis ~ . , data = ed.small)
+selectedMod <- step(glmMod, steps = 1000)
+summary(selectedMod)
+
+rm(list = c("ed.small", "glmMod", "selectedMod"))
+```
+
+## GLM LASSO
+```{r ModelSummaryStats-Backward}
+# ALL DATA
+# Data = considering that we have a data frame named wdbc_sub, remove the first column ID_number field and the second column being the class
+x <- as.matrix(wdbc_sub[,-c(1:2)]) # Removes ID and class
+y <- as.double(as.matrix(wdbc_sub[, 2])) # Only class
+# Fitting the model (Lasso: Alpha = 1)
+set.seed(999)
+cv.lasso <- cv.glmnet(x, y, family='binomial', alpha=1, parallel=TRUE,
+                      standardize=TRUE, type.measure='auc')
+# Results
+plot(cv.lasso)
+plot(cv.lasso$glmnet.fit, xvar="lambda", label=TRUE)
+cv.lasso$lambda.min
+cv.lasso$lambda.1se
+coef(cv.lasso, s=cv.lasso$lambda.min)
+
+rm(list = c("cv.lasso","x", "y"))
+
+# TRAIN DATA
+x <- as.matrix(wdbc_train[,-c(1:2)]) # Removes ID and class
+y <- as.double(as.matrix(wdbc_train[, 2])) # Only class
+# Fitting the model (Lasso: Alpha = 1)
+set.seed(999)
+cv.lasso <- cv.glmnet(x, y, family='binomial', alpha=1, parallel=TRUE,
+                      standardize=TRUE, type.measure='auc')
+# Results
+plot(cv.lasso)
+plot(cv.lasso$glmnet.fit, xvar="lambda", label=TRUE)
+cv.lasso$lambda.min
+cv.lasso$lambda.1se
+coef(cv.lasso, s=cv.lasso$lambda.min)
+
+rm(list = c("cv.lasso","x", "y"))
+```
+
+## GLM Model - Removal of Leverage and Outliers
 ```{r Remove_Leverage_and_outliers}
 wdbc.sub_Not153 <- wdbc.sub[-153,]
 wdbc_sub_Not153 <- wdbc_sub[-153,]
@@ -259,16 +428,15 @@ summary(selectedMod)
 ```{r StepwiseBackwardSelection}
 selectedMod <- step(glmMod, direction = "backward")
 summary(selectedMod)
-rm(ed.small)
-rm(list = c("ed.small", "glmMod", "selectMod"))
-
+rm(list = c("ed.small", "glmMod", "selectedMod"))
+```
+```{r MISC}
 # selectedMod <- step(lmMod, direction = "backward")
 # all.vifs <- car::vif(selectedMod)
 # print(all.vifs)
 # rm(ed.small)
 # rm(list = c("ed.small", "lmMod", "all.vifs"))
 ```
-
 - When using a backward selection, eight variables are retained in the model selection, only Mitoses is omitted from the model selection.
 
 ## Logistic Regression
@@ -284,10 +452,10 @@ rm(list = c("ed.small", "glmMod", "selectMod"))
 
 #wdbc.data.2$Class <- as.factor(wdbc.data.2$Class)
 
-#set.seed(12345) #to get repeatable data
-
-##wdbc.train <- sample_frac(ed.small, 0.2, replace = FALSE)
-#wdbc.train <- sample_frac(wdbc.data.2, 0.2, replace = FALSE)
+# #set.seed(12345) #to get repeatable data
+# 
+# ##wdbc.train <- sample_frac(ed.small, 0.2, replace = FALSE)
+# #wdbc.train <- sample_frac(wdbc.data.2, 0.2, replace = FALSE)
 
 #train.index <- as.numeric(rownames(wdbc.train))
 ##wdbc.test <- ed.small[-train.index,]

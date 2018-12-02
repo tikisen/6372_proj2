@@ -201,3 +201,25 @@ print(all_vifs_2)
 
 forward <-data.frame(names(all_vifs_2))
 
+# -----------------
+ed.small <- wdbc.sub %>% select(-c(1,2))
+corr <- cor(ed.small)
+corrplot(corr, method ="number", type= "upper")
+corrplot(corr, method ="circle", type= "upper")
+rm(corr)
+# ----------------- CORRELATION MAXTIX
+
+
+# -----------------
+glm_fits = glm(diagnosis ~.-ID_number,data=wdbc_sub,family="binomial")
+car::vif(glm_fits)
+
+# -----------------
+par(mfrow = c(1, 2))
+autoplot(glm_fits, which = 1:6, ncol = 3, label.size = 3, colour = 'diagnosis')
+#--------
+plot(hatvalues(glm_fits))
+which.max(hatvalues(glm_fits))
+
+#------------
+wdbc.sub_Not153 <- wdbc.sub[-153,] 
