@@ -51,12 +51,18 @@ library(car)
 - We are using the Breast Cancer Data from the Wisconsin Diagnostic Breast Cancer (WDBC) dataset and will first load it.
 
 ```{r input_data}
-wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/wdbc.data.csv", 
+wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/wdbc.data1.csv", 
                       sep = ",", 
                       row.names = NULL, 
                       header = TRUE,
                       na.strings = c(""),
                       stringsAsFactors = FALSE)
+
+wdbc.data <- wdbc_data
+
+wdbc.data <- wdbc.data %>% dplyr::select(ID_number = 1, everything())
+wdbc.sub <- wdbc.data %>% dplyr::select(1:12)
+
 wdbc_data <- wdbc_data %>% dplyr::select(ID_number = 1, everything())
 wdbc_sub <- wdbc_data %>% dplyr::select(1:12)
 wdbc_sub <- wdbc_sub %>% mutate(dia = case_when(diagnosis == "B" ~ 0,
@@ -79,26 +85,27 @@ sapply(wdbc_data,function(x) sum(is.na(x)))
 ## Summary Statistics/Histograms
 ```{r SummaryStats}
 # TOTAL COUNT BY CANCER TYPE ####
-ggplot(data=wdbc_sub, aes(x=diagnosis, colour = diagnosis)) +
+
+ggplot(data=wdbc.sub, aes(x=diagnosis, colour = diagnosis)) +
   geom_bar() +
-  geom_text(stat='Count', aes(label=..count..), vjust = 5) +
+  geom_text(stat='Count', aes(label=..count..), vjust = 10) +
   theme(legend.position = "none") +
   scale_color_manual(values = c("blue", "red")) +
   ggtitle("Total Count by Cancer Type: Blue = Benign; Red = Malignant ") 
   
 
 # PERCENT OF TOTAL BY CANCER TYPE ####
-wdbc_data.percent <- wdbc_sub %>% 
+wdbc.sub.percent <- wdbc.sub %>% 
   count(diagnosis) %>% 
-  mutate(perc = n / nrow(wdbc_sub))
+  mutate(perc = n / nrow(wdbc.sub))
 
-ggplot(data=wdbc_data.percent, aes(x = diagnosis, y = perc, colour = diagnosis)) +
+ggplot(data=wdbc.sub.percent, aes(x = diagnosis, y = perc, colour = diagnosis)) +
   geom_bar(stat = "identity") +
   geom_text(stat = "identity", aes(label=round(perc*100,2)), vjust = 10) +
   theme(legend.position = "none") +
   scale_color_manual(values = c("blue", "red")) +
   ggtitle("Percent of Total by Cancer Type: Blue = Benign; Red = Malignant ")
-rm(wdbc_data.percent) 
+rm(wdbc.sub.percent) 
 ```
 
 - Ideally, the proportion of events and non-events in the Y variable should approximately be the same.
@@ -120,15 +127,16 @@ cols <- character(nrow(ed.small))
 cols[] <- "black"
 cols[ed.small$diagnosis == 0] <- "blue"
 cols[ed.small$diagnosis == 1] <- "red"
-pairs(ed.small, col=cols, main = "WDBC Pairs Plot: Blue = Benign; Red = Malignant ")
+pairs(ed.small, col=cols, main = "WDBC Pairs Plot: Blue = Benign; Red = Malignant")
 rm(cols)
+rm(ed.small)
 ```
 
 - Version 2:
 - Similar to the first Pairs Plot, however version 2 introduces jitter to the observations and as a result it is easy to see the density of the observations.
 
 ```{r pairsplot_ver2}
-
+ed.small <- wdbc_sub %>% dplyr::select(-c(1))
 # the alpha argument in rgb() lets you set the transparency
 cols2 = c(rgb(red=0, green=0, blue=255, alpha=50, maxColorValue=255), 
           rgb(red=255, green=0, blue=0, alpha=50, maxColorValue=255))
@@ -198,10 +206,9 @@ ggplot(data = ed.tall, aes(x=Value)) +
 
 ```{r Boxplot}
 ed.tall <- ed.small %>% 
-  gather(-10, key = "Variable", value = "Value") %>% 
-  filter(!is.na(CancerState))
+  gather(-1, key = "Variable", value = "Value") 
 
-ggplot(ed.tall, aes(x=CancerState, y=Value, fill = CancerState)) + 
+ggplot(ed.tall, aes(x=diagnosis, y=Value, fill = diagnosis)) + 
   geom_boxplot() +
   facet_wrap(~ Variable) +
   ggtitle("WDBC Boxplot ") + 
