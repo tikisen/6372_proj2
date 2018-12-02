@@ -180,6 +180,7 @@ rm(list = c("jbreast", "cols2", "i", "j"))
 - Color intensity and the size of the circle are proportional to the correlation coefficients.
 
 ```{r CorrelationPlot}
+ed.small <- wdbc.sub %>% select(-1)
 corr <- cor(ed.small)
 corrplot(corr, method ="number", type= "upper")
 corrplot(corr, method ="circle", type= "upper")
@@ -190,31 +191,29 @@ rm(corr)
 - The histograms are a look at each attribute broken down by CancerState
 
 ```{r histogram}
-ed.small <- entire.dataset %>% dplyr::select(-c(1,11))
-
-ed.tall <- ed.small %>%
-  gather(-10, key = "Variable", value = "Value") %>% 
-  filter(!is.na(CancerState))
+ed.tall <- wdbc.sub %>% dplyr::select(-c(1)) %>%
+  gather(-1, key = "Variable", value = "Value") 
 
 ggplot(data = ed.tall, aes(x=Value)) +
   geom_histogram(bins=15) + 
-  facet_wrap(Variable ~ CancerState, ncol = 9)
+  facet_wrap(Variable ~ diagnosis, ncol = 9, scales = "free")
+
 ```
 
 ## Boxplots
 - Boxplot of attributes, color by CancerState
 
 ```{r Boxplot}
-
 ed.tall <- wdbc.sub %>% dplyr::select(-c(1)) %>%
   gather(-1, key = "Variable", value = "Value") 
 
 ggplot(ed.tall, aes(x=diagnosis, y=Value, fill = diagnosis)) + 
   geom_boxplot() +
-  facet_wrap(~ Variable) +
+  facet_wrap(~ Variable, scales = "free") +
   ggtitle("WDBC Boxplot ") + 
   scale_fill_manual(breaks = c("Benign", "Malignant "), values = c("blue", "red")) +
   theme(legend.position="none")
+rm(ed.tall)
 ```
 
 ## MODEL SELECTION
