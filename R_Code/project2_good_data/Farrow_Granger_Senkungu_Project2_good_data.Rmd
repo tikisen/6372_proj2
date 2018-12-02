@@ -51,7 +51,7 @@ library(car)
 - We are using the Breast Cancer Data from the Wisconsin Diagnostic Breast Cancer (WDBC) dataset and will first load it.
 
 ```{r input_data}
-wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/wdbc.data1.csv", 
+wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/wdbc.data.csv", 
                       sep = ",", 
                       row.names = NULL, 
                       header = TRUE,
@@ -205,7 +205,8 @@ ggplot(data = ed.tall, aes(x=Value)) +
 - Boxplot of attributes, color by CancerState
 
 ```{r Boxplot}
-ed.tall <- ed.small %>% 
+
+ed.tall <- wdbc.sub %>% dplyr::select(-c(1)) %>%
   gather(-1, key = "Variable", value = "Value") 
 
 ggplot(ed.tall, aes(x=diagnosis, y=Value, fill = diagnosis)) + 
