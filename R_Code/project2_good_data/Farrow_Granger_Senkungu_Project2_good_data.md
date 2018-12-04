@@ -7,9 +7,7 @@ output:
         keep_md: true
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+
 
 ## Load Required Libraries
 - Tidyverse 
@@ -21,42 +19,14 @@ knitr::opts_chunk$set(echo = TRUE)
 - car
 - ggfortify
 
-```{r Load_Libraries, include=FALSE}
-# function to install any missing packages if needd to run knitr
 
-install.if.nec <- function(x){
-  for( i in x ){
-    #  require returns TRUE invisibly if it was able to load package
-    if( ! require( i , character.only = TRUE ) ){
-      #  If package was not able to be loaded then re-install
-      install.packages( i , dependencies = TRUE, repos = "http://cran.us.r-project.org")
-      #  Load package after installing
-      require( i , character.only = TRUE )
-    }
-  }
-}
-
-#  Try/install necessary packages
-# Use this function wherever you make use of other packages.
-install.if.nec( c("tidyverse", "Amelia", "corrplot", "pscl", "ROCR", "MASS", "car", "ggfortify","glmnet" ) )
-#  Try/install necessary packages
-
-library(ROCR)
-library(MASS)
-library(tidyverse)
-library(Amelia)
-library(corrplot)
-library(pscl)
-library(car)
-library(ggfortify)
-library(glmnet)
-```
 
 ## Load Data
 
 - We are using the Breast Cancer Data from the Wisconsin Diagnostic Breast Cancer (WDBC) dataset and will first load it.
 
-```{r input_data}
+
+```r
 wdbc_data <- read.csv("https://raw.githubusercontent.com/tikisen/6372_proj2/master/Data/wdbc.data.csv", 
                       sep = ",", 
                       row.names = NULL, 
@@ -74,20 +44,48 @@ wdbc_sub <- wdbc_data %>% dplyr::select(1:12)
 wdbc_sub <- wdbc_sub %>% dplyr::mutate(dia = dplyr::case_when(diagnosis == "B" ~ 0,
                                                   diagnosis == "M" ~ 1)) %>%
  dplyr::select(1, 3:13) %>% dplyr::select(1, diagnosis = dia, 2:11)
-
 ```
 
 # Bruce's Work Starts Here
 
 ## Check for missing values
-```{r CheckForMissingValues}
+
+```r
 sapply(wdbc_data,function(x) sum(is.na(x)))
 ```
 
-- The above output identifies there is not any missing data in any of the attributes.
+```
+##               ID_number               diagnosis                  radius 
+##                       0                       0                       0 
+##                 texture               perimeter                    area 
+##                       0                       0                       0 
+##              smoothness             compactness               concavity 
+##                       0                       0                       0 
+##          concave_points                symmetry       fractal_dimension 
+##                       0                       0                       0 
+##               radius_SE              texture_SE            perimeter_SE 
+##                       0                       0                       0 
+##                 area_SE           smoothness_SE          compactness_SE 
+##                       0                       0                       0 
+##            concavity_SE       concave_points_SE             symmetry_SE 
+##                       0                       0                       0 
+##    fractal_dimension_SE            Worst_radius           Worst_texture 
+##                       0                       0                       0 
+##         Worst_perimeter              Worst_area        Worst_smoothness 
+##                       0                       0                       0 
+##       Worst_compactness         Worst_concavity    Worst_concave_points 
+##                       0                       0                       0 
+##          Worst_symmetry Worst_fractal_dimension 
+##                       0                       0
+```
+
+- The above output identifies there is missing data in each of the attributes, but what is not clear at this point if the missing values are for the same of different IDs.
+
+- The following visualizes where the missing data is occurring:
 
 ## Summary Statistics/Histograms
-```{r SummaryStats}
+
+```r
 # TOTAL COUNT BY CANCER TYPE ####
 
 ggplot(data=wdbc.sub, aes(x=diagnosis, colour = diagnosis)) +
@@ -96,8 +94,11 @@ ggplot(data=wdbc.sub, aes(x=diagnosis, colour = diagnosis)) +
   theme(legend.position = "none") +
   scale_color_manual(values = c("blue", "red")) +
   ggtitle("Total Count by Cancer Type: Blue = Benign; Red = Malignant ") 
-  
+```
 
+![](Farrow_Granger_Senkungu_Project2_good_data_files/figure-html/SummaryStats-1.png)<!-- -->
+
+```r
 # PERCENT OF TOTAL BY CANCER TYPE ####
 wdbc.sub.percent <- wdbc.sub %>% 
   count(diagnosis) %>% 
@@ -109,11 +110,16 @@ ggplot(data=wdbc.sub.percent, aes(x = diagnosis, y = perc, colour = diagnosis)) 
   theme(legend.position = "none") +
   scale_color_manual(values = c("blue", "red")) +
   ggtitle("Percent of Total by Cancer Type: Blue = Benign; Red = Malignant ")
+```
+
+![](Farrow_Granger_Senkungu_Project2_good_data_files/figure-html/SummaryStats-2.png)<!-- -->
+
+```r
 rm(wdbc.sub.percent) 
 ```
 
 - Ideally, the proportion of events and non-events in the Y variable should approximately be the same.
-- From the above histograms it is obvious there is a class bias, a condition observed when the Malignant proportion of events is much smaller than proportion of Benign events, by a factor of 1 to 1.68.  
+- From the above histograms it is obvious there is a class bias, a condition observed when the Malignant proportion of events is much smaller than proportion of Benign events, by a factor of 1 to 1.9.  
 - As a result, we must sample the observations in approximately equal proportions in order to get better model.  Unfortunately we have a small sample size, which means we are not able to implement this strategy. 
  
 ## Pairs Plots
@@ -124,7 +130,8 @@ rm(wdbc.sub.percent)
     * Blue = Benign 
     * Red = Malignant 
 
-```{r pairsplot_ver1}
+
+```r
 ed.small <- wdbc_sub %>% dplyr::select(-c(1))
 
 cols <- character(nrow(ed.small))
@@ -132,6 +139,11 @@ cols[] <- "black"
 cols[ed.small$diagnosis == 0] <- "blue"
 cols[ed.small$diagnosis == 1] <- "red"
 pairs(ed.small, col=cols, main = "WDBC Pairs Plot: Blue = Benign; Red = Malignant")
+```
+
+![](Farrow_Granger_Senkungu_Project2_good_data_files/figure-html/pairsplot_ver1-1.png)<!-- -->
+
+```r
 rm(cols)
 rm(ed.small)
 ```
@@ -139,7 +151,8 @@ rm(ed.small)
 - Version 2:
 - Similar to the first Pairs Plot, however version 2 introduces jitter to the observations and as a result it is easy to see the density of the observations.
 
-```{r pairsplot_ver2}
+
+```r
 ed.small <- wdbc_sub %>% dplyr::select(-c(1))
 # the alpha argument in rgb() lets you set the transparency
 cols2 = c(rgb(red=0, green=0, blue=255, alpha=50, maxColorValue=255), 
@@ -175,91 +188,61 @@ for(i in 1:5){
   }
   
 }
-rm(list = c("jbreast", "cols2", "i", "j"))
+```
 
+![](Farrow_Granger_Senkungu_Project2_good_data_files/figure-html/pairsplot_ver2-1.png)<!-- -->
+
+```r
+rm(list = c("jbreast", "cols2", "i", "j"))
 ```
 
 ## Corrleation Plot
 - Positive correlations are displayed in blue and negative correlations in red color.
 - Color intensity and the size of the circle are proportional to the correlation coefficients.
 
-```{r CorrelationPlot}
+
+```r
 ed.small <- wdbc.sub %>% dplyr::select(-c(1,2))
 corr <- cor(ed.small)
-
 corrplot(corr, method ="number", type= "upper")
-corrplot(corr, method ="circle", type= "upper")
-rm(list = c("corr", "ed.small"))
 ```
 
-- The largest Pos correlations:
+![](Farrow_Granger_Senkungu_Project2_good_data_files/figure-html/CorrelationPlot-1.png)<!-- -->
 
-- The largest Neg correlations:
+```r
+corrplot(corr, method ="circle", type= "upper")
+```
 
-## Scatter Plot
-- Attributes vs diagnosis with Sep
-  - Area
-  - Compactness
-  - Concave Points
-  - Concavity
-  - Perimeter
-  - Radius
-  - Texture
-```{r ScatterVarVsDiag}
-ed.small <- wdbc_sub %>% select(diagnosis ,area, compactness, concave_points, 
-                                concavity, perimeter, radius, texture)
+![](Farrow_Granger_Senkungu_Project2_good_data_files/figure-html/CorrelationPlot-2.png)<!-- -->
 
-ed.tall <- ed.small %>% gather(-diagnosis, key = "variable", value = "value")
-
-
-ggplot(data = ed.tall, aes(x=value, y=diagnosis)) +
-  geom_point(aes(colour =  diagnosis)) +
-  geom_jitter(aes(colour =  diagnosis)) +
-  facet_wrap(~variable, scales = "free", ncol = 4)
-
-ggplot(data = ed.tall, aes(x=value, y=diagnosis)) +
-  geom_point(aes(colour =  diagnosis)) +
-  geom_jitter(aes(colour =  diagnosis)) +
-  facet_grid(~variable, scales = "free")
-  
-  
-# geom_point(aes(colour =  diagnosis), shape = 1) +
-#   scale_colour_gradientn(colours = c("blue", "red")) +
-#   facet_wrap(~variable, scales = "free", ncol = 4) +
-#   ggtitle("Scatter: Variables vs Diagnosis") +
-#   geom_jitter()
-  
-  
-  # facet_wrap(~variable, scales = "free", ncol = 4) +
-  # ggtitle("Scatter: Variables vs Diagnosis") 
-  # 
-  # scale_color_manual(values = c("blue", "red"))
-
-
-ed.small <- wdbc_sub %>% select(fractal_dimension, smoothness, symmetry)
-  
-  ## CIRCLE BACK
-
-rm(list = c("ed.small", "ed.tall"))
+```r
+rm(list = c("corr", "ed.small"))
 ```
 
 ## Histogram
 - The histograms are a look at each attribute broken down by CancerState
 
-```{r histogram}
+
+```r
 ed.tall <- wdbc.sub %>% dplyr::select(-c(1)) %>%
   gather(-1, key = "Variable", value = "Value") 
 
 ggplot(data = ed.tall, aes(x=Value)) +
   geom_histogram(bins=15) + 
   facet_wrap(Variable ~ diagnosis, ncol = 5, scales = "free")
+```
+
+![](Farrow_Granger_Senkungu_Project2_good_data_files/figure-html/histogram-1.png)<!-- -->
+
+```r
 rm(ed.tall)
 ```
 
 ## Boxplots
 - Boxplot of attributes, color by CancerState
 
-```{r Boxplot}
+
+```r
 ed.tall <- wdbc.sub %>% dplyr::select(-c(1)) %>%
   gather(-1, key = "Variable", value = "Value") 
 
@@ -269,135 +252,210 @@ ggplot(ed.tall, aes(x=diagnosis, y=Value, fill = diagnosis)) +
   ggtitle("WDBC Boxplot ") + 
   scale_fill_manual(breaks = c("Benign", "Malignant "), values = c("blue", "red")) +
   theme(legend.position="none")
-rm(ed.tall)
 ```
-## Training and Test Datasets
-```{r TrainAndTest}
-set.seed(12345) #to get repeatable data
- 
-wdbc.train <- sample_frac(wdbc.sub, 0.8, replace = FALSE)
-train.index <- as.numeric(rownames(wdbc.train))
-wdbc.test <- wdbc.sub[-train.index,]
 
-wdbc_train <- wdbc_sub[train.index,]
-wdbc_test <- wdbc_sub[-train.index,]
+![](Farrow_Granger_Senkungu_Project2_good_data_files/figure-html/Boxplot-1.png)<!-- -->
 
-rm(train.index)
-
+```r
+rm(ed.tall)
 ```
 
 ## Model - VIF
-```{r VIFModel}
-glm_fits = glm(diagnosis ~.-ID_number,data=wdbc_sub,family="binomial")
-car::vif(glm_fits)
 
-glm_fits = glm(diagnosis ~.-ID_number,data=wdbc_train,family="binomial")
+```r
+glm_fits = glm(diagnosis ~.-ID_number,data=wdbc_sub,family="binomial")
+```
+
+```
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+```
+
+```r
 car::vif(glm_fits)
-# glm_fits REMOVE IN leverage_and_outliers SECTION)
+```
+
+```
+##            radius           texture         perimeter              area 
+##        899.521292          1.806441        698.983071        129.559492 
+##        smoothness       compactness         concavity    concave_points 
+##          4.372939         15.280847          5.259524          5.856371 
+##          symmetry fractal_dimension 
+##          1.839511          9.787700
 ```
 
 ## GLM Model - Leverage and Outliers
-```{r leverage_and_outliers}
+
+```r
 par(mfrow = c(1, 2))
 autoplot(glm_fits, which = 1:6, ncol = 3, label.size = 3, colour = 'diagnosis')
+```
+
+![](Farrow_Granger_Senkungu_Project2_good_data_files/figure-html/leverage_and_outliers-1.png)<!-- -->
+
+```r
 rm(list = c("glm_fits"))
 ```
 
 ## GLM Model Forward - Summary Stats
-```{r ModelSummaryStats-Forward}
-# ALL DATA
+
+```r
 ed.small <- wdbc_sub %>% dplyr::select(-1)
 glmMod <- glm(diagnosis ~ . , data = ed.small)
 selectedMod <- step(glmMod, direction = "forward")
+```
+
+```
+## Start:  AIC=158.47
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     compactness + concavity + concave_points + symmetry + fractal_dimension
+```
+
+```r
 summary(selectedMod)
+```
 
-rm(list = c("ed.small", "glmMod", "selectedMod"))
+```
+## 
+## Call:
+## glm(formula = diagnosis ~ radius + texture + perimeter + area + 
+##     smoothness + compactness + concavity + concave_points + symmetry + 
+##     fractal_dimension, data = ed.small)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.6654  -0.1908  -0.0387   0.1806   0.8223  
+## 
+## Coefficients:
+##                     Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)       -2.0520842  0.4166539  -4.925 1.11e-06 ***
+## radius             0.4900123  0.1312459   3.734 0.000208 ***
+## texture            0.0219732  0.0029228   7.518 2.23e-13 ***
+## perimeter         -0.0549747  0.0210018  -2.618 0.009095 ** 
+## area              -0.0009548  0.0002460  -3.881 0.000116 ***
+## smoothness         1.9408621  1.4107971   1.376 0.169460    
+## compactness        0.0972608  1.0390787   0.094 0.925458    
+## concavity          0.8097675  0.4953986   1.635 0.102702    
+## concave_points     6.4310115  1.3855810   4.641 4.32e-06 ***
+## symmetry           1.0119000  0.5612933   1.803 0.071959 .  
+## fractal_dimension -0.1192924  4.1578258  -0.029 0.977121    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 0.07562057)
+## 
+##     Null deviance: 133.012  on 568  degrees of freedom
+## Residual deviance:  42.196  on 558  degrees of freedom
+## AIC: 158.47
+## 
+## Number of Fisher Scoring iterations: 2
+```
 
-# TRAIN DATA
-ed.small <- wdbc_train %>% dplyr::select(-1)
-glmMod <- glm(diagnosis ~ . , data = ed.small)
-selectedMod <- step(glmMod, direction = "forward")
-summary(selectedMod)
-
-rm(list = c("ed.small", "glmMod", "selectedMod"))
+```r
+rm(ed.small)
 ```
 
 ## GLM Model Backward - Summary Stats
-```{r ModelSummaryStats-Backward}
-# ALL DATA
+
+```r
 ed.small <- wdbc_sub %>% dplyr::select(-1)
 glmMod <- glm(diagnosis ~ . , data = ed.small)
 selectedMod <- step(glmMod, direction = "backward")
-summary(selectedMod)
-
-rm(list = c("ed.small", "glmMod", "selectedMod"))
-
-# TRAIN DATA
-ed.small <- wdbc_train %>% dplyr::select(-1)
-glmMod <- glm(diagnosis ~ . , data = ed.small)
-selectedMod <- step(glmMod, direction = "backward")
-summary(selectedMod)
-
-rm(list = c("ed.small", "glmMod", "selectedMod"))
 ```
 
-## GLM Model Stepwise - Summary Stats
-```{r ModelSummaryStats-Both}
-# ALL DATA
-ed.small <- wdbc_sub %>% dplyr::select(-1)
-glmMod <- glm(diagnosis ~ . , data = ed.small)
-selectedMod <- step(glmMod, steps = 1000)
-summary(selectedMod)
-
-rm(list = c("ed.small", "glmMod", "selectedMod"))
-
-# TRAIN DATA
-ed.small <- wdbc_train %>% dplyr::select(-1)
-glmMod <- glm(diagnosis ~ . , data = ed.small)
-selectedMod <- step(glmMod, steps = 1000)
-summary(selectedMod)
-
-rm(list = c("ed.small", "glmMod", "selectedMod"))
+```
+## Start:  AIC=158.47
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     compactness + concavity + concave_points + symmetry + fractal_dimension
+## 
+##                     Df Deviance    AIC
+## - fractal_dimension  1   42.196 156.47
+## - compactness        1   42.197 156.48
+## - smoothness         1   42.339 158.40
+## <none>                   42.196 158.47
+## - concavity          1   42.398 159.19
+## - symmetry           1   42.442 159.78
+## - perimeter          1   42.714 163.41
+## - radius             1   43.250 170.51
+## - area               1   43.336 171.63
+## - concave_points     1   43.825 178.03
+## - texture            1   46.470 211.37
+## 
+## Step:  AIC=156.47
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     compactness + concavity + concave_points + symmetry
+## 
+##                  Df Deviance    AIC
+## - compactness     1   42.197 154.48
+## - smoothness      1   42.344 156.46
+## <none>                42.196 156.47
+## - concavity       1   42.400 157.21
+## - symmetry        1   42.443 157.79
+## - perimeter       1   42.735 161.70
+## - radius          1   43.260 168.64
+## - area            1   43.535 172.24
+## - concave_points  1   43.832 176.11
+## - texture         1   46.504 209.78
+## 
+## Step:  AIC=154.48
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     concavity + concave_points + symmetry
+## 
+##                  Df Deviance    AIC
+## <none>                42.197 154.48
+## - smoothness      1   42.367 154.76
+## - concavity       1   42.420 155.48
+## - symmetry        1   42.457 155.98
+## - perimeter       1   43.246 166.45
+## - area            1   43.801 173.70
+## - concave_points  1   43.842 174.24
+## - radius          1   44.119 177.82
+## - texture         1   46.517 207.94
 ```
 
-## GLM LASSO
-```{r ModelSummaryStats-Backward}
-# ALL DATA
-# Data = considering that we have a data frame named wdbc_sub, remove the first column ID_number field and the second column being the class
-x <- as.matrix(wdbc_sub[,-c(1:2)]) # Removes ID and class
-y <- as.double(as.matrix(wdbc_sub[, 2])) # Only class
-# Fitting the model (Lasso: Alpha = 1)
-set.seed(999)
-cv.lasso <- cv.glmnet(x, y, family='binomial', alpha=1, parallel=TRUE,
-                      standardize=TRUE, type.measure='auc')
-# Results
-plot(cv.lasso)
-plot(cv.lasso$glmnet.fit, xvar="lambda", label=TRUE)
-cv.lasso$lambda.min
-cv.lasso$lambda.1se
-coef(cv.lasso, s=cv.lasso$lambda.min)
+```r
+summary(selectedMod)
+```
 
-rm(list = c("cv.lasso","x", "y"))
+```
+## 
+## Call:
+## glm(formula = diagnosis ~ radius + texture + perimeter + area + 
+##     smoothness + concavity + concave_points + symmetry, data = ed.small)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -0.66657  -0.19201  -0.03814   0.18055   0.82117  
+## 
+## Coefficients:
+##                  Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)    -2.0638586  0.2529107  -8.160 2.21e-15 ***
+## radius          0.4811809  0.0952762   5.050 5.97e-07 ***
+## texture         0.0219923  0.0029045   7.572 1.53e-13 ***
+## perimeter      -0.0534559  0.0143268  -3.731  0.00021 ***
+## area           -0.0009658  0.0002094  -4.613 4.92e-06 ***
+## smoothness      1.9731828  1.3154401   1.500  0.13417    
+## concavity       0.8197314  0.4763727   1.721  0.08584 .  
+## concave_points  6.4409375  1.3784988   4.672 3.73e-06 ***
+## symmetry        1.0224176  0.5501390   1.858  0.06363 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 0.07535182)
+## 
+##     Null deviance: 133.012  on 568  degrees of freedom
+## Residual deviance:  42.197  on 560  degrees of freedom
+## AIC: 154.48
+## 
+## Number of Fisher Scoring iterations: 2
+```
 
-# TRAIN DATA
-x <- as.matrix(wdbc_train[,-c(1:2)]) # Removes ID and class
-y <- as.double(as.matrix(wdbc_train[, 2])) # Only class
-# Fitting the model (Lasso: Alpha = 1)
-set.seed(999)
-cv.lasso <- cv.glmnet(x, y, family='binomial', alpha=1, parallel=TRUE,
-                      standardize=TRUE, type.measure='auc')
-# Results
-plot(cv.lasso)
-plot(cv.lasso$glmnet.fit, xvar="lambda", label=TRUE)
-cv.lasso$lambda.min
-cv.lasso$lambda.1se
-coef(cv.lasso, s=cv.lasso$lambda.min)
-
-rm(list = c("cv.lasso","x", "y"))
+```r
+rm(ed.small)
 ```
 
 ## GLM Model - Removal of Leverage and Outliers
-```{r Remove_Leverage_and_outliers}
+
+```r
 wdbc.sub_Not153 <- wdbc.sub[-153,]
 wdbc_sub_Not153 <- wdbc_sub[-153,]
 ```
@@ -411,12 +469,60 @@ wdbc_sub_Not153 <- wdbc_sub[-153,]
 
 
 
-```{r StepwiseForwardSelection}
+
+```r
 ed.small <- wdbc_sub %>% dplyr::select(-1)
 glmMod <- glm(diagnosis ~ . , data = ed.small)
 selectedMod <- step(glmMod, direction = "forward")
-summary(selectedMod)
+```
 
+```
+## Start:  AIC=158.47
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     compactness + concavity + concave_points + symmetry + fractal_dimension
+```
+
+```r
+summary(selectedMod)
+```
+
+```
+## 
+## Call:
+## glm(formula = diagnosis ~ radius + texture + perimeter + area + 
+##     smoothness + compactness + concavity + concave_points + symmetry + 
+##     fractal_dimension, data = ed.small)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -0.6654  -0.1908  -0.0387   0.1806   0.8223  
+## 
+## Coefficients:
+##                     Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)       -2.0520842  0.4166539  -4.925 1.11e-06 ***
+## radius             0.4900123  0.1312459   3.734 0.000208 ***
+## texture            0.0219732  0.0029228   7.518 2.23e-13 ***
+## perimeter         -0.0549747  0.0210018  -2.618 0.009095 ** 
+## area              -0.0009548  0.0002460  -3.881 0.000116 ***
+## smoothness         1.9408621  1.4107971   1.376 0.169460    
+## compactness        0.0972608  1.0390787   0.094 0.925458    
+## concavity          0.8097675  0.4953986   1.635 0.102702    
+## concave_points     6.4310115  1.3855810   4.641 4.32e-06 ***
+## symmetry           1.0119000  0.5612933   1.803 0.071959 .  
+## fractal_dimension -0.1192924  4.1578258  -0.029 0.977121    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 0.07562057)
+## 
+##     Null deviance: 133.012  on 568  degrees of freedom
+## Residual deviance:  42.196  on 558  degrees of freedom
+## AIC: 158.47
+## 
+## Number of Fisher Scoring iterations: 2
+```
+
+```r
 # glmMod <- lm(diagnosis ~ . , data = ed.small)
 # selectedMod <- step(lmMod, direction = "forward")
 # all.vifs <- car::vif(selectedMod)
@@ -425,12 +531,103 @@ summary(selectedMod)
 
 - When using a forward selection, all nine variables are retained in the model selection.
 
-```{r StepwiseBackwardSelection}
+
+```r
 selectedMod <- step(glmMod, direction = "backward")
+```
+
+```
+## Start:  AIC=158.47
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     compactness + concavity + concave_points + symmetry + fractal_dimension
+## 
+##                     Df Deviance    AIC
+## - fractal_dimension  1   42.196 156.47
+## - compactness        1   42.197 156.48
+## - smoothness         1   42.339 158.40
+## <none>                   42.196 158.47
+## - concavity          1   42.398 159.19
+## - symmetry           1   42.442 159.78
+## - perimeter          1   42.714 163.41
+## - radius             1   43.250 170.51
+## - area               1   43.336 171.63
+## - concave_points     1   43.825 178.03
+## - texture            1   46.470 211.37
+## 
+## Step:  AIC=156.47
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     compactness + concavity + concave_points + symmetry
+## 
+##                  Df Deviance    AIC
+## - compactness     1   42.197 154.48
+## - smoothness      1   42.344 156.46
+## <none>                42.196 156.47
+## - concavity       1   42.400 157.21
+## - symmetry        1   42.443 157.79
+## - perimeter       1   42.735 161.70
+## - radius          1   43.260 168.64
+## - area            1   43.535 172.24
+## - concave_points  1   43.832 176.11
+## - texture         1   46.504 209.78
+## 
+## Step:  AIC=154.48
+## diagnosis ~ radius + texture + perimeter + area + smoothness + 
+##     concavity + concave_points + symmetry
+## 
+##                  Df Deviance    AIC
+## <none>                42.197 154.48
+## - smoothness      1   42.367 154.76
+## - concavity       1   42.420 155.48
+## - symmetry        1   42.457 155.98
+## - perimeter       1   43.246 166.45
+## - area            1   43.801 173.70
+## - concave_points  1   43.842 174.24
+## - radius          1   44.119 177.82
+## - texture         1   46.517 207.94
+```
+
+```r
 summary(selectedMod)
+```
+
+```
+## 
+## Call:
+## glm(formula = diagnosis ~ radius + texture + perimeter + area + 
+##     smoothness + concavity + concave_points + symmetry, data = ed.small)
+## 
+## Deviance Residuals: 
+##      Min        1Q    Median        3Q       Max  
+## -0.66657  -0.19201  -0.03814   0.18055   0.82117  
+## 
+## Coefficients:
+##                  Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)    -2.0638586  0.2529107  -8.160 2.21e-15 ***
+## radius          0.4811809  0.0952762   5.050 5.97e-07 ***
+## texture         0.0219923  0.0029045   7.572 1.53e-13 ***
+## perimeter      -0.0534559  0.0143268  -3.731  0.00021 ***
+## area           -0.0009658  0.0002094  -4.613 4.92e-06 ***
+## smoothness      1.9731828  1.3154401   1.500  0.13417    
+## concavity       0.8197314  0.4763727   1.721  0.08584 .  
+## concave_points  6.4409375  1.3784988   4.672 3.73e-06 ***
+## symmetry        1.0224176  0.5501390   1.858  0.06363 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## (Dispersion parameter for gaussian family taken to be 0.07535182)
+## 
+##     Null deviance: 133.012  on 568  degrees of freedom
+## Residual deviance:  42.197  on 560  degrees of freedom
+## AIC: 154.48
+## 
+## Number of Fisher Scoring iterations: 2
+```
+
+```r
 rm(list = c("ed.small", "glmMod", "selectedMod"))
 ```
-```{r MISC}
+
+```r
 # selectedMod <- step(lmMod, direction = "backward")
 # all.vifs <- car::vif(selectedMod)
 # print(all.vifs)
@@ -444,7 +641,8 @@ rm(list = c("ed.small", "glmMod", "selectedMod"))
 - The training set will be used to build the model and the test set will be used to validate the model.
 - The training set will consist of 20% of the data and the test set will consist of the remaining 80%.
 - A set.seed is used at the beginning of the test and training division in order to get reproducible results.
-```{r LogisticRegression}
+
+```r
 #wdbc.data.2 <-  wdbc.data %>% mutate(Class2 = case_when(Class == 2 ~ 0,
 #                                                        Class == 4 ~ 1)) %>%
 # dplyr::select(Clump, Cell_Size, Cell_Shape, Adhesion, Epithelial, Nuclei,
@@ -452,10 +650,10 @@ rm(list = c("ed.small", "glmMod", "selectedMod"))
 
 #wdbc.data.2$Class <- as.factor(wdbc.data.2$Class)
 
-# #set.seed(12345) #to get repeatable data
-# 
-# ##wdbc.train <- sample_frac(ed.small, 0.2, replace = FALSE)
-# #wdbc.train <- sample_frac(wdbc.data.2, 0.2, replace = FALSE)
+#set.seed(12345) #to get repeatable data
+
+##wdbc.train <- sample_frac(ed.small, 0.2, replace = FALSE)
+#wdbc.train <- sample_frac(wdbc.data.2, 0.2, replace = FALSE)
 
 #train.index <- as.numeric(rownames(wdbc.train))
 ##wdbc.test <- ed.small[-train.index,]
@@ -490,7 +688,8 @@ The following attributes ARE statistically significant:
 - Analyzing the table we can see the drop in deviance when adding each variable one at a time, with the exception of when adding Nuclei and Chromatin.
 - With the addition of Clump significantly reduces the residual deviance and each additional attribute reduces the residual deviance, but in much smaller increments.
 
-```{r GLM_FIT_ANOVA}
+
+```r
 #anova(wdbc.glm.fit, test = "Chisq")
 ```
 
@@ -501,7 +700,8 @@ From the ToD we are able to see the difference between the null deviance versus 
 By adding Clump and Cell_Size to the model drastically reduces the residual deviance.  All attributes have 0.05 p-value or less.
 
 Eventhough there is not an exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:
-```{r ModelFit}
+
+```r
 #pr2_mc <- pR2(wdbc.glm.fit)
 #pr2_mc[[4]]
 ```
@@ -510,7 +710,8 @@ Assessing the predictive ability of the logistic regression model by predicting 
 - The predict function provides probabilities of classification
 - Using a probabilities from the predict function, the ifelse will use the threshold of 0.5 to assign classification of "Malignant ", else it will assign a classification of "Benign"
 - A confusion matrix will provide how well the model is doing
-```{r PredictTest}
+
+```r
 #glm.probs <- predict(wdbc.glm.fit, wdbc.test, type = "response")
 
 #prediction(glm.probs, wdbc.test$Class) -> pred_log
@@ -542,7 +743,6 @@ Assessing the predictive ability of the logistic regression model by predicting 
 ## We are attempting to predict CancerState variabel in the dataset, this is used to evaluate what ## is predicted in the model to the actual state
 # attach(wdbc.test)
 # table(glm.pred,Class)
-
 ```
 - The confusion matrix operates on the diagonial where the model predicted **CORRECTLY**, starting at the top left (726) and the bottom right (335).
 - The off diagonial is where the model predicted **INCORRECTLY**, starting at the bottom left (39) and the top right (18).
@@ -556,9 +756,7 @@ Assessing the predictive ability of the logistic regression model by predicting 
 
 You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
 
-```
 
 # Rick's Work Ends Here
 
@@ -567,7 +765,8 @@ You can also embed plots, for example:
 
 ##Proportions
 
-```{r proportions}
+
+```r
 #attach(entire.dataset)
 ##table of counts
 # ftable(addmargins(table(CancerState, Clump)))
@@ -601,12 +800,12 @@ You can also embed plots, for example:
 # plot(CancerState~Chromatin,col=c("red","blue"))
 # plot(CancerState~Nucleoli,col=c("red","blue"))
 # plot(CancerState~Mitoses,col=c("red","blue"))
-
 ```
 
 ## PCA
 
-```{r PCA}
+
+```r
 # pc.result<-prcomp(entire.dataset[,2:11],scale.=TRUE)
 # pc.scores<-pc.result$x
 # pc.scores<-data.frame(pc.scores)
@@ -639,8 +838,8 @@ PC1 vs PC2 and PC1 vs PC3 show good separation so some variable is a good predic
 
 ## LDA & QDA
 
-```{r LDA_QDA}
 
+```r
 # mylda<- lda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
 # myqda<- qda(Class ~ Clump+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = entire.dataset)
 
@@ -670,7 +869,8 @@ PC1 vs PC2 and PC1 vs PC3 show good separation so some variable is a good predic
 
 ## Stepwise Regression
 
-```{r stepwise}
+
+```r
 #?lm
 
 #full.model <- lm (Class ~., data = entire.dataset)
@@ -678,10 +878,10 @@ PC1 vs PC2 and PC1 vs PC3 show good separation so some variable is a good predic
 
 ## LDA
 
-```{r LDA}
+
+```r
 # entire.dataset.continuous <- entire.dataset[, c(2:11)]
 # pairs(entire.dataset.continuous[,1:10])
-
 ```
 
 
