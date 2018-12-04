@@ -34,7 +34,7 @@ install.if.nec <- function(x){
 
 #  Try/install necessary packages
 # Use this function wherever you make use of other packages.
-install.if.nec( c("tidyverse", "Amelia", "corrplot", "pscl", "ROCR", "MASS", "car" ) )
+install.if.nec( c("tidyverse", "Amelia", "corrplot", "pscl", "ROCR", "MASS", "car", "ggplot2", "rgl", "tree", "ISLR", "randomForest", "class", "Metrics") )
 #  Try/install necessary packages
 
 library(ROCR)
@@ -44,6 +44,13 @@ library(Amelia)
 library(corrplot)
 library(pscl)
 library(car)
+library(ggplot2)
+library(rgl)
+library(tree)
+library(ISLR)
+library(randomForest) 
+library(class)
+library(Metrics)
 ```
 
 ## Load Data
@@ -433,6 +440,8 @@ ggplot(data = pc.scores, aes(x = PC1, y = PC3)) +
   geom_point(aes(col=diagnosis), size=1)+
   ggtitle("PCA of Cancer Status")
 ```
+
+
 ## Separation
 
 PC1 vs PC2 and PC1 vs PC3 show good separation so some variable is a good predictor of cancer status.
@@ -442,22 +451,23 @@ PC1 vs PC2 and PC1 vs PC3 show good separation so some variable is a good predic
 
 ```{r LDA_QDA}
 
-mylda<- lda(diagnosis ~ texture+perimeter+area+smoothness+compactness+concavity+concave_points+symmetry+fractal_dimension, data = wdbc_sub)
-myqda<- qda(diagnosis ~ texture+Cell_Size+Cell_Shape+Adhesion+Epithelial+Nuclei+Chromatin+Nucleoli+Mitoses, data = wdbc_sub)
+mylda<- lda(diagnosis ~ radius+texture+perimeter+area+smoothness+compactness+concavity+concave_points+symmetry+fractal_dimension, data = wdbc_sub)
+myqda<- qda(diagnosis ~ radius+texture+perimeter+area+smoothness+compactness+concavity+concave_points+symmetry+fractal_dimension, data = wdbc_sub)
 
 #confusion matrix
 set.seed(2134)
-index<-sample(1:385,250,replace=FALSE)
+index<-sample(1:569,450,replace=FALSE)
 test.wdbc_sub<-wdbc_sub[-index,]
 prd<-predict(mylda, newdata = test.wdbc_sub)$class
-table(prd,test.wdbc_sub$Class)
-
+table(prd,test.wdbc_sub$diagnosis)
+mylda
 #ROC
 ldaprd<-predict(mylda, newdata = wdbc_sub)$posterior
 #correcting for the way lda creates predicted probabilities
 ldaprd<-ldaprd[,2]
 
-pred <- prediction(ldaprd, wdbc_sub$Class)
+
+pred <- prediction(ldaprd, wdbc_sub$diagnosis)
 roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")
 auc.train <- performance(pred, measure = "auc")
 auc.train <- auc.train@y.values
@@ -468,22 +478,50 @@ abline(a=0, b= 1) #Ref line indicating poor performance
 text(x = .40, y = .6,paste("AUC = ", round(auc.train[[1]],3), sep = ""))
 ```
 
+ROC curve shows that the model does a good job reproducing results in training data
+- no good interpretation
+- ROC curve for our predictive model under the test set
+- area under the curve is...
+
+.0407 error rate
+.0485 false negative
+.0222 false positive
+
+Sensitivity: 0.891089109 (correctly predict yes)
+Specificity: 0.990825688 (correclty predict no)
 
 ## Stepwise Regression
 
-```{r stepwise}
-#?lm
+```{r knn}
+# test data created above test.wdbc_sub
+# you don't get R^2 or other such parametric stats
+train.wdbc_sub<-wdbc_sub[index,]
+ev.train.wdbc_sub <- train.wdbc_sub[,-c(1:2)]
+diagnosis.train.wdbc_sub <- train.wdbc_sub[,c(2)]
+ev.test.wdbc_sub <- test.wdbc_sub[,-c(1:2)]
+diagnosis.test.wdbc_sub <- test.wdbc_sub[,c(2)]
 
-full.model <- lm (Class ~., data = wdbc_sub)
+# we'd rather tell people they have cancer than they dont. have more false positives
+# bias vs variance tradeoff. p108
+
+knn.pred.diagnosis <- knn(ev.train.wdbc_sub, ev.test.wdbc_sub, diagnosis.train.wdbc_sub, k=20)
+
+table(knn.pred.diagnosis, diagnosis.test.wdbc_sub)
+mean(knn.pred.diagnosis==diagnosis.test.wdbc_sub)
+
 ```
 
-## LDA
+## Random
 
-```{r LDA}
-wdbc_sub.continuous <- wdbc_sub[, c(2:11)]
-pairs(wdbc_sub.continuous[,1:10])
+```{r random_forest}
+short.tree<-tree(diagnosis~. ,train.wdbc_sub,mincut=50)
+summary(short.tree)
+plot(short.tree)
+text(short.tree)
+
 
 ```
+
 
 
 #TQ's Work Ends Here
