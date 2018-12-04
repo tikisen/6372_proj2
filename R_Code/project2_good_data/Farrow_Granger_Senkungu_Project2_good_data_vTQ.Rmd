@@ -455,9 +455,10 @@ mylda<- lda(diagnosis ~ radius+texture+perimeter+area+smoothness+compactness+con
 myqda<- qda(diagnosis ~ radius+texture+perimeter+area+smoothness+compactness+concavity+concave_points+symmetry+fractal_dimension, data = wdbc_sub)
 
 #confusion matrix
-set.seed(2134)
-index<-sample(1:569,450,replace=FALSE)
+set.seed(12345)
+index<-sample(1:569,455,replace=FALSE)
 test.wdbc_sub<-wdbc_sub[-index,]
+train.wdbc_sub<-wdbc_sub[index,]
 prd<-predict(mylda, newdata = test.wdbc_sub)$class
 table(prd,test.wdbc_sub$diagnosis)
 mylda
@@ -465,7 +466,7 @@ mylda
 ldaprd<-predict(mylda, newdata = wdbc_sub)$posterior
 #correcting for the way lda creates predicted probabilities
 ldaprd<-ldaprd[,2]
-
+summary (mylda)
 
 pred <- prediction(ldaprd, wdbc_sub$diagnosis)
 roc.perf = performance(pred, measure = "tpr", x.measure = "fpr")
@@ -476,6 +477,33 @@ auc.train <- auc.train@y.values
 plot(roc.perf,main="LDA")
 abline(a=0, b= 1) #Ref line indicating poor performance
 text(x = .40, y = .6,paste("AUC = ", round(auc.train[[1]],3), sep = ""))
+
+#QDA
+#confusion matrix
+prd.q<-predict(myqda, newdata = test.wdbc_sub)$class
+table(prd.q,test.wdbc_sub$diagnosis)
+myqda
+#ROC
+qdaprd<-predict(myqda, newdata = wdbc_sub)$posterior
+#correcting for the way lda creates predicted probabilities
+qdaprd<-qdaprd[,2]
+
+
+pred.q <- prediction(qdaprd, wdbc_sub$diagnosis)
+roc.perf.q = performance(pred.q, measure = "tpr", x.measure = "fpr")
+auc.train.q <- performance(pred.q, measure = "auc")
+auc.train.q <- auc.train.q@y.values
+
+#Plot ROC
+plot(roc.perf,main="QDA")
+abline(a=0, b= 1) #Ref line indicating poor performance
+text(x = .40, y = .6,paste("AUC = ", round(auc.train.q[[1]],3), sep = ""))
+
+
+# Export test and train data for SAS
+setwd("~/Git/SMU/MSDS 6372/6372_proj2/Data")
+write.csv(test.wdbc_sub, file = "test.wdbc_sub.csv")
+write.csv(train.wdbc_sub, file = "train.wdbc_sub.csv")
 ```
 
 ROC curve shows that the model does a good job reproducing results in training data
@@ -495,7 +523,6 @@ Specificity: 0.990825688 (correclty predict no)
 ```{r knn}
 # test data created above test.wdbc_sub
 # you don't get R^2 or other such parametric stats
-train.wdbc_sub<-wdbc_sub[index,]
 ev.train.wdbc_sub <- train.wdbc_sub[,-c(1:2)]
 diagnosis.train.wdbc_sub <- train.wdbc_sub[,c(2)]
 ev.test.wdbc_sub <- test.wdbc_sub[,-c(1:2)]
@@ -504,7 +531,7 @@ diagnosis.test.wdbc_sub <- test.wdbc_sub[,c(2)]
 # we'd rather tell people they have cancer than they dont. have more false positives
 # bias vs variance tradeoff. p108
 
-knn.pred.diagnosis <- knn(ev.train.wdbc_sub, ev.test.wdbc_sub, diagnosis.train.wdbc_sub, k=20)
+knn.pred.diagnosis <- knn(ev.train.wdbc_sub, ev.test.wdbc_sub, diagnosis.train.wdbc_sub, k=16)
 
 table(knn.pred.diagnosis, diagnosis.test.wdbc_sub)
 mean(knn.pred.diagnosis==diagnosis.test.wdbc_sub)
