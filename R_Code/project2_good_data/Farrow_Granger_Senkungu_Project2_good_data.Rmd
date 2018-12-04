@@ -50,6 +50,8 @@ library(pscl)
 library(car)
 library(ggfortify)
 library(glmnet)
+
+rm(install.if.nec)
 ```
 
 ## Load Data
@@ -305,85 +307,70 @@ rm(list = c("glm_fits"))
 
 ## GLM Model Forward - Summary Stats
 ```{r ModelSummaryStats-Forward}
-# ALL DATA
-ed.small <- wdbc_sub %>% dplyr::select(-1)
-glmMod <- glm(diagnosis ~ . , data = ed.small)
-selectedMod <- step(glmMod, direction = "forward")
-summary(selectedMod)
 
-rm(list = c("ed.small", "glmMod", "selectedMod"))
-
-# TRAIN DATA
+# TRAIN - TEST DATA
 ed.small <- wdbc_train %>% dplyr::select(-1)
 glmMod <- glm(diagnosis ~ . , data = ed.small)
-selectedMod <- step(glmMod, direction = "forward")
-summary(selectedMod)
+fwd_selectedMod_train <- step(glmMod, direction = "forward")
+summary(fwd_selectedMod_train)
 
-rm(list = c("ed.small", "glmMod", "selectedMod"))
+ed.small <- wdbc_test %>% dplyr::select(-1)
+prd<-predict(fwd_selectedMod_train, newdata = ed.small[,2:11])
+
+cutoff <- .3
+
+fwd_predict <- ifelse(prd > cutoff, "Malignant", "Benign")
+table(fwd_predict,ed.small$diagnosis)
+
+rm(list = c("ed.small", "glmMod", "fwd_selectedMod_train", "prd", "fwd_predict"))
 ```
 
 ## GLM Model Backward - Summary Stats
 ```{r ModelSummaryStats-Backward}
-# ALL DATA
-ed.small <- wdbc_sub %>% dplyr::select(-1)
-glmMod <- glm(diagnosis ~ . , data = ed.small)
-selectedMod <- step(glmMod, direction = "backward")
-summary(selectedMod)
 
-rm(list = c("ed.small", "glmMod", "selectedMod"))
-
-# TRAIN DATA
+# TRAIN - TEST DATA
 ed.small <- wdbc_train %>% dplyr::select(-1)
 glmMod <- glm(diagnosis ~ . , data = ed.small)
-selectedMod <- step(glmMod, direction = "backward")
-summary(selectedMod)
+bwd_selectedMod_train <- step(glmMod, direction = "backward")
+summary(bwd_selectedMod_train)
 
-rm(list = c("ed.small", "glmMod", "selectedMod"))
+ed.small <- wdbc_test %>% dplyr::select(-1)
+prd<-predict(bwd_selectedMod_train, newdata = ed.small[,2:11])
+
+bwd_predict <- ifelse(prd > cutoff, "Malignant", "Benign")
+table(bwd_predict,ed.small$diagnosis)
+
+rm(list = c("ed.small", "glmMod", "bwd_selectedMod_train", "bwd_predict"))
+
 ```
 
 ## GLM Model Stepwise - Summary Stats
 ```{r ModelSummaryStats-Both}
-# ALL DATA
-ed.small <- wdbc_sub %>% dplyr::select(-1)
-glmMod <- glm(diagnosis ~ . , data = ed.small)
-selectedMod <- step(glmMod, steps = 1000)
-summary(selectedMod)
-
-rm(list = c("ed.small", "glmMod", "selectedMod"))
 
 # TRAIN DATA
 ed.small <- wdbc_train %>% dplyr::select(-1)
 glmMod <- glm(diagnosis ~ . , data = ed.small)
-selectedMod <- step(glmMod, steps = 1000)
-summary(selectedMod)
+both_selectedMod_train <- step(glmMod, steps = 1000)
+summary(both_selectedMod_train)
 
-rm(list = c("ed.small", "glmMod", "selectedMod"))
+ed.small <- wdbc_test %>% dplyr::select(-1)
+prd<-predict(both_selectedMod_train, newdata = ed.small[,2:11])
+
+both_predict <- ifelse(prd > cutoff, "Malignant", "Benign")
+table(both_predict,ed.small$diagnosis)
+
+rm(list = c("ed.small", "glmMod", "both_selectedMod_train", "prd", "both_predict"))
+
 ```
 
 ## GLM LASSO
 ```{r ModelSummaryStats-Backward}
-# ALL DATA
-# Data = considering that we have a data frame named wdbc_sub, remove the first column ID_number field and the second column being the class
-x <- as.matrix(wdbc_sub[,-c(1:2)]) # Removes ID and class
-y <- as.double(as.matrix(wdbc_sub[, 2])) # Only class
-# Fitting the model (Lasso: Alpha = 1)
-set.seed(999)
-cv.lasso <- cv.glmnet(x, y, family='binomial', alpha=1, parallel=TRUE,
-                      standardize=TRUE, type.measure='auc')
-# Results
-plot(cv.lasso)
-plot(cv.lasso$glmnet.fit, xvar="lambda", label=TRUE)
-cv.lasso$lambda.min
-cv.lasso$lambda.1se
-coef(cv.lasso, s=cv.lasso$lambda.min)
-
-rm(list = c("cv.lasso","x", "y"))
 
 # TRAIN DATA
 x <- as.matrix(wdbc_train[,-c(1:2)]) # Removes ID and class
 y <- as.double(as.matrix(wdbc_train[, 2])) # Only class
 # Fitting the model (Lasso: Alpha = 1)
-set.seed(999)
+set.seed(12345)
 cv.lasso <- cv.glmnet(x, y, family='binomial', alpha=1, parallel=TRUE,
                       standardize=TRUE, type.measure='auc')
 # Results
@@ -393,7 +380,43 @@ cv.lasso$lambda.min
 cv.lasso$lambda.1se
 coef(cv.lasso, s=cv.lasso$lambda.min)
 
+ed.small <- wdbc_test %>% dplyr::select(-1)
+prd<-predict(both_selectedMod_train, newdata = ed.small[,2:11])
+
+both_predict <- ifelse(prd > cutoff, "Malignant", "Benign")
+table(both_predict,ed.small$diagnosis)
+
 rm(list = c("cv.lasso","x", "y"))
+```
+
+## Manual Model
+```{r ManualModel}
+# TRAIN DATA
+ed.small <- wdbc_train %>% dplyr::select(diagnosis, area, texture, concave_points)
+glmMod <- glm(diagnosis ~ area + texture + concave_points , data = ed.small)
+manl_selectedMod_train <- step(glmMod, steps = 1000)
+summary(manl_selectedMod_train)
+
+ed.small <- wdbc_test %>% dplyr::select(diagnosis, area, texture, concave_points)
+prd<-predict(manl_selectedMod_train, newdata = ed.small[,2:4])
+
+manl_predict <- ifelse(prd > cutoff, "Malignant", "Benign")
+table(manl_predict,ed.small$diagnosis)
+
+rm(list = c("ed.small", "glmMod", "manl_selectedMod_train", "prd", "manl_predict"))
+```
+
+```{r ModelSelectedAttributes_Pairs}
+ed.small <- wdbc_sub %>% dplyr::select(diagnosis, radius, texture, perimeter,
+                                       area, concave_points)
+
+cols <- character(nrow(ed.small))
+cols[] <- "black"
+cols[ed.small$diagnosis == 0] <- "blue"
+cols[ed.small$diagnosis == 1] <- "red"
+pairs(ed.small, col=cols, main = "WDBC Pairs Plot: Blue = Benign; Red = Malignant")
+rm(cols)
+rm(ed.small)
 ```
 
 ## GLM Model - Removal of Leverage and Outliers
@@ -500,7 +523,7 @@ From the ToD we are able to see the difference between the null deviance versus 
 
 By adding Clump and Cell_Size to the model drastically reduces the residual deviance.  All attributes have 0.05 p-value or less.
 
-Eventhough there is not an exact equivalent to the R2 of linear regression exists, the McFadden R2 index can be used to assess the model fit:
+Eventhough there is not an exact equivalent to the R2 of linear regression, the McFadden R2 index can be used to assess the model fit:
 ```{r ModelFit}
 #pr2_mc <- pR2(wdbc.glm.fit)
 #pr2_mc[[4]]
