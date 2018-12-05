@@ -419,6 +419,7 @@ pc.result<-prcomp(wdbc_sub[,3:12],scale.=TRUE)
 pc.scores<-pc.result$x
 pc.scores<-data.frame(pc.scores)
 pc.scores$diagnosis<-wdbc_sub$diagnosis
+view(pc.scores)
 
 #Scree plot
 eigenvals<-(pc.result$sdev)^2
@@ -502,6 +503,7 @@ text(x = .40, y = .6,paste("AUC = ", round(auc.train.q[[1]],3), sep = ""))
 
 # Export test and train data for SAS
 setwd("~/Git/SMU/MSDS 6372/6372_proj2/Data")
+write.csv(wdbc_sub, file = "wdbc_sub.csv")
 write.csv(test.wdbc_sub, file = "test.wdbc_sub.csv")
 write.csv(train.wdbc_sub, file = "train.wdbc_sub.csv")
 ```
